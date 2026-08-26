@@ -95,37 +95,28 @@ phone links behave properly on mobile.
 
 ## How the hero works
 
-Scrolling the first screen scrubs an 8-second logo animation frame by frame: darkness,
-the chair, the tools, the mark. The page settles exactly as the mark lands.
+The hero is the shop's brand film, playing by itself: darkness, the chair, the clipper
+and shears, then the mark settling. It starts as soon as the page loads — no scrolling,
+no clicking.
 
-- The video is fetched as a Blob so seeking works on hosts without HTTP Range support.
-- Two encodes exist; the browser is served whichever it can decode, and only that one
-  is downloaded.
-- **Phones get the scrub too.** The footage is 9:16, so a portrait phone shows it whole
-  with no cropping — it is the best screen for it. Only landscape phones (no room for a
-  portrait journey) and anyone using "reduce motion" get the composed static hero, and
-  they **never download the video at all**.
-- If the video fails for any reason, the page falls back to the still and stays complete.
-
-### Regenerating the video assets
-
-All the stills and both encodes came from the original clip with ffmpeg. The scrub
-encodes use a dense keyframe interval (`-g 8`), which is what makes scrubbing smooth
-rather than choppy — a normal encode will stutter.
-
-```bash
-# H.264, trimmed to 6.70s (the original ends with 1.6s of frozen frames)
-ffmpeg -ss 0 -to 6.70 -i source.mp4 -an -vf "scale=720:1280:flags=lanczos" \
-  -c:v libx264 -pix_fmt yuv420p -g 8 -keyint_min 8 -sc_threshold 0 \
-  -crf 19 -preset slow -movflags +faststart assets/hero-scrub.mp4
-
-# VP9
-ffmpeg -ss 0 -to 6.70 -i source.mp4 -an -vf "scale=720:1280:flags=lanczos" \
-  -c:v libvpx-vp9 -crf 30 -b:v 0 -g 8 -keyint_min 8 -row-mt 1 assets/hero-scrub.webm
-```
-
-If you re-encode, update the byte sizes in the `SOURCES` array in `assets/js/site.js` —
-they are the fallback used when a host does not send `Content-Length`.
+- **Muted and inline**, which is what lets browsers autoplay it at all. The file has no
+  audio track, so there is nothing to unmute.
+- **It plays once and rests on the logo.** If you scroll away it pauses to save battery,
+  and it picks up again when you scroll back. If it had already finished, it restarts.
+  To make it loop continuously instead, add `video.loop = true;` inside `loadHero()` in
+  `assets/js/site.js`.
+- **Two encodes.** The browser is served whichever it can decode — `hero.webm` (VP9,
+  2.3 MB) for Chrome, Edge and Firefox, `hero.mp4` (H.264, 3.0 MB) for Safari — and only
+  that one is downloaded.
+- **On desktop** the footage sits in a gold-edged portrait frame in the middle, with the
+  headline to its left and your hours and buttons to its right. It is 9:16, so framing it
+  this way shows the whole picture instead of cropping two thirds of it away.
+- **On phones** it fills the screen edge to edge, which is exactly the shape it was made
+  for, with the copy over the top and bottom.
+- **Reduce motion** turns the video off entirely — it is never even downloaded — and the
+  frame holds the still logo instead. The words and buttons are identical either way.
+- If the video fails to load for any reason, the frame falls back to the still logo and
+  the page is complete.
 
 
 ## The map

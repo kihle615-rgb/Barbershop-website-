@@ -108,39 +108,26 @@
 <section class="hero" aria-label="Introduction">
   <div class="stage">
 
-    <!-- the centre lane: the footage in its native 9:16, framed -->
+    <!-- the footage in its native 9:16, framed. It plays itself. -->
     <div class="frame" aria-hidden="true">
       <div class="frame__poster"></div>
-      <video id="hero-video" class="frame__video" preload="none" muted playsinline
+      <video id="hero-video" class="frame__video" preload="none" muted playsinline autoplay
              aria-hidden="true" tabindex="-1"></video>
       <div class="frame__still"></div>
-      <svg class="ring" viewBox="0 0 48 48" aria-hidden="true">
-        <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-dasharray="126" style="stroke-dashoffset:var(--ld,126)"/>
-      </svg>
     </div>
 
     <div class="stage__vignette" aria-hidden="true"></div>
 
-    <!-- scroll-driven caption bands -->
-    <div class="bands">
-      <div class="band band--l" data-a="0"    data-b="0.23" data-fx="focus">
-        <p class="band__h">A fade is a line you can't find.</p>
+    <div class="lead">
+      <div class="lead__l">
+        <h1 class="lead__h">A fade is a line you can&rsquo;t find.</h1>
+        <p class="lead__p">Skin becomes shadow becomes hair, and nowhere in between
+          can you point at the step.</p>
       </div>
-      <div class="band band--r" data-a="0.26" data-b="0.49" data-fx="drift">
-        <p class="band__h" data-split="word">Every one of them starts in the same chair.</p>
-      </div>
-      <div class="band band--l" data-a="0.52" data-b="0.75" data-fx="align" data-spread="0.5">
-        <p class="band__h" data-split="char">Clippers set the gradient. The blade sets the edge.</p>
-      </div>
-
-      <!-- the settle: the mark in the panel is the headline. Facts left, actions right. -->
-      <div class="band band--settle" data-a="0.79" data-b="1">
-        <div class="settle__l">
-          <p class="settle__eyebrow">Paballelo, Upington</p>
-          <p class="settle__fact">Open every day<br><span>10:30 – 20:00</span></p>
-        </div>
-        <div class="settle__r">
+      <div class="lead__r">
+        <p class="lead__eyebrow">Paballelo, Upington</p>
+        <p class="lead__fact">Open every day<br><span>10:30 &ndash; 20:00</span></p>
+        <div class="lead__cta">
           <a class="btn btn--gold" href="https://wa.me/27657196289?text=Hi%20Eazy%20Fade%20Studio%2C%20I%27d%20like%20to%20book%20a%20cut."
              target="_blank" rel="noopener">Book on WhatsApp</a>
           <a class="btn btn--ghost" href="tel:+27657196289">065 719 6289</a>
@@ -148,21 +135,6 @@
       </div>
     </div>
 
-    <!-- the static hero: phones, portrait tablets, reduced motion -->
-    <div class="still">
-      <div class="still__mark" role="img" aria-label="The Eazy Fade Studio mark: a gold and silver EF monogram built around a clipper."></div>
-      <div class="still__copy">
-        <h1 class="still__h">A fade is a line you can't find.</h1>
-        <p class="still__p">Eazy Fade Studio. Paballelo, Upington — open every day, 10:30 to 20:00.</p>
-        <div class="still__cta">
-          <a class="btn btn--gold" href="https://wa.me/27657196289?text=Hi%20Eazy%20Fade%20Studio%2C%20I%27d%20like%20to%20book%20a%20cut."
-             target="_blank" rel="noopener">Book on WhatsApp</a>
-          <a class="btn btn--ghost" href="tel:+27657196289">Call 065 719 6289</a>
-        </div>
-      </div>
-    </div>
-
-    <span class="cue" aria-hidden="true"><span></span></span>
   </div>
 </section>
 

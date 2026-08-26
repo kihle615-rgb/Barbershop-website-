@@ -175,3 +175,34 @@ Three changes after review:
    right, tinted dark to match. Reachability is probed with a no-cors fetch rather than
    the iframe's load event, which fires for the browser's own error page and is therefore
    useless; when the probe fails the panel shows the address and a link out.
+
+
+---
+
+## Third pass — the hero plays itself
+
+The client asked for the footage to play automatically rather than being driven by
+scroll. That removes the scroll-scrub entirely, and with it the caption band map in
+section 4 of this document, the four scroll-timed entrances, the blob loader, the
+seek gate, the lerp drive and four of the five static-hero gates. The hero is now one
+screen tall instead of 640vh, and the page went from roughly 5,800px of hero to 900px.
+
+What survives is the composition. On desktop the footage still sits in its gold-edged
+9:16 frame in the centre lane — cover-cropping a portrait film into a landscape hero
+would still throw away two thirds of the picture — with the headline flanking left and
+the hours and actions right. On phones it fills the screen, the shape it was made for.
+
+The band map is replaced by a single composed copy block, so the four scroll beats
+collapse into one statement: the premise headline, the lede beneath it, and the
+facts and actions opposite. Copy is drawn from bands 1 and 4 verbatim; bands 2 and 3
+are retired with the mechanism that carried them.
+
+The one thing this pass added rather than removed: a worst-frame legibility audit on
+mobile, where copy now sits over live footage. Measuring the lightest pixel under each
+text rect across ten points in the footage caught the gold eyebrow at **2.47:1** against
+the chair's lit pedestal — the bottom scrim was weakest exactly where that line sits.
+Extending and deepening it brings the four measured elements to 17.91, 6.23, 8.01 and
+15.93 against a 3.5:1 floor.
+
+Reduced motion still never downloads the video, and the hero copy is now scoped behind a
+`.js` class so it can never be left invisible when scripting is off.

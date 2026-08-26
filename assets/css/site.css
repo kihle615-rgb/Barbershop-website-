@@ -40,7 +40,6 @@
   --tshadow:0 1px 2px rgba(5,3,8,.95),0 3px 12px rgba(5,3,8,.78),0 10px 44px rgba(5,3,8,.8);
 
   --gut:clamp(1.25rem,5vw,5.5rem);
-  --frameW:min(47.25vh,46vw);
 }
 
 *,*::before,*::after{box-sizing:border-box}
@@ -167,19 +166,18 @@ a{color:inherit}
 }
 
 /* ==========================================================================
-   HERO
+   HERO — the footage plays itself. One screen, no scroll journey.
    ========================================================================== */
-.hero{position:relative;height:640vh;z-index:1}
-.stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;
-  display:grid;place-items:center;background:var(--canvas-deep)}
+.hero{position:relative;height:100vh;height:100svh;min-height:34rem;z-index:1}
+.stage{position:relative;height:100%;overflow:hidden;display:grid;place-items:center;
+  background:var(--canvas-deep)}
 
-/* the centre lane — the footage in its native 9:16 */
-.frame{position:relative;height:84vh;aspect-ratio:9/16;max-width:92vw;
+/* the centre lane — the footage in its native 9:16, never cropped */
+.frame{position:relative;height:min(78vh,42rem);aspect-ratio:9/16;max-width:92vw;
   border:1px solid var(--accent-muted);
   box-shadow:0 0 0 1px rgba(5,3,8,.9),0 40px 120px rgba(0,0,0,.75),
              0 0 90px rgba(224,169,74,.09);
-  overflow:hidden;background:var(--canvas-deep);
-  transform:translateZ(0)}
+  overflow:hidden;background:var(--canvas-deep);transform:translateZ(0)}
 .frame::after{content:"";position:absolute;inset:0;pointer-events:none;
   box-shadow:inset 0 0 70px rgba(5,3,8,.75)}
 .frame__poster,.frame__still{position:absolute;inset:0;background-size:cover;
@@ -187,137 +185,70 @@ a{color:inherit}
 .frame__still{opacity:0;transition:opacity .8s var(--ease);
   background-image:url('../hero-still.jpg')}
 .frame__video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-  opacity:0;transition:opacity .7s var(--ease);will-change:transform;transform:translateZ(0)}
+  opacity:0;transition:opacity .9s var(--ease);will-change:transform;transform:translateZ(0)}
 .stage.video-ready .frame__video{opacity:1}
-.stage.video-failed .frame__video{display:none}
-.stage.video-failed .frame__still{opacity:1}
-
-.ring{position:absolute;left:50%;bottom:1.6rem;width:34px;height:34px;margin-left:-17px;
-  color:var(--accent);opacity:.85;transform:rotate(-90deg);
-  transition:opacity .5s var(--ease)}
-.ring circle{transition:stroke-dashoffset .18s linear}
-.stage.video-ready .ring{opacity:0}
+/* no video: the settled mark carries the frame instead */
+.stage.video-failed .frame__video,.stage.no-video .frame__video{display:none}
+.stage.video-failed .frame__still,.stage.no-video .frame__still{opacity:1}
 
 .stage__vignette{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(ellipse 120% 90% at 50% 45%,rgba(11,8,13,0) 38%,rgba(11,8,13,.72) 100%)}
 
-
-/* ---- caption bands ---------------------------------------------------- */
-.bands{position:absolute;inset:0;display:grid;
-  grid-template-columns:1fr var(--frameW) 1fr;align-items:center;
+/* ---- the composed copy: headline left, details and actions right -------- */
+.lead{position:absolute;inset:0;display:grid;
+  grid-template-columns:1fr min(78vh,42rem) 1fr;align-items:center;
   pointer-events:none;z-index:3}
-.band{grid-row:1;opacity:0;text-shadow:var(--tshadow)}
-.band--l{grid-column:1;justify-self:end;text-align:right;
-  padding:0 clamp(1.5rem,3.4vw,4rem) 0 var(--gut)}
-.band--r{grid-column:3;justify-self:start;text-align:left;
-  padding:0 var(--gut) 0 clamp(1.5rem,3.4vw,4rem)}
-
-.band__h{font-family:var(--display);font-weight:800;font-stretch:112%;
-  font-size:clamp(1.65rem,2.9vw,2.95rem);line-height:1.04;letter-spacing:-.02em;
-  max-width:14ch}
-.band--l .band__h{margin-left:auto}
-
-/* entrance (a): blur-to-sharp — never animate filter, crossfade two static copies */
-.fx-focus{position:relative;display:block}
-.fx-focus .layer{display:block}
-.fx-focus .layer--soft{filter:blur(11px);opacity:calc(1 - var(--k,0));
-  position:absolute;inset:0;color:var(--accent)}
-.fx-focus .layer--sharp{opacity:var(--k,0)}
-
-/* entrance (f): drift-down, word level */
-.fx-drift .w{display:inline-block;
-  --kc:clamp(0,(var(--k,0) - var(--th,0))*2.8,1);
-  opacity:var(--kc);transform:translateY(calc((1 - var(--kc)) * -26px))}
-
-/* entrance (b): grid snap-align, character level in reading order */
-.fx-align .c{display:inline-block;
-  --kc:clamp(0,(var(--k,0) - var(--th,0))*2.6,1);
-  opacity:var(--kc);transform:translateX(calc((1 - var(--kc)) * var(--jx,0px)))}
-.fx-align .w{display:inline-block;white-space:nowrap}
-
-/* ---- the settle: mark centre, facts left, actions right ---------------- */
-.band--settle{grid-column:1/-1;display:grid;
-  grid-template-columns:1fr var(--frameW) 1fr;align-items:center;pointer-events:none}
-.settle__l{grid-column:1;justify-self:end;text-align:right;
-  padding:0 clamp(1.5rem,3.4vw,4rem) 0 var(--gut);
-  --kc:clamp(0,var(--k,0)*2.2,1);opacity:var(--kc);
-  transform:translateY(calc((1 - var(--kc)) * 18px))}
-.settle__r{grid-column:3;justify-self:start;
+.lead__l{grid-column:1;justify-self:end;text-align:right;
+  padding:0 clamp(1.5rem,3.4vw,4rem) 0 var(--gut);text-shadow:var(--tshadow)}
+.lead__r{grid-column:3;justify-self:start;
   padding:0 var(--gut) 0 clamp(1.5rem,3.4vw,4rem);
-  display:flex;flex-direction:column;align-items:flex-start;gap:.7rem;pointer-events:auto;
-  --kb:clamp(0,(var(--k,0) - .3)*2.4,1);opacity:var(--kb);
-  transform:translateY(calc((1 - var(--kb)) * 18px))}
-.settle__eyebrow{font:400 .62rem/1 var(--mono);letter-spacing:.3em;text-transform:uppercase;
-  color:var(--accent);margin-bottom:.9rem}
-.settle__fact{font-family:var(--display);font-weight:800;font-stretch:112%;
-  font-size:clamp(1.05rem,1.6vw,1.5rem);line-height:1.16;color:var(--text-primary)}
-.settle__fact span{color:var(--steel);font-family:var(--mono);font-weight:400;
+  display:flex;flex-direction:column;align-items:flex-start;gap:.75rem;
+  pointer-events:auto;text-shadow:var(--tshadow)}
+.lead__h{font-size:clamp(1.9rem,3.4vw,3.4rem);line-height:1.02;letter-spacing:-.02em;
+  max-width:13ch;margin-left:auto;margin-bottom:1.1rem}
+.lead__p{color:var(--text-secondary);max-width:30ch;margin-left:auto;font-size:.98rem;
+  line-height:1.6}
+.lead__eyebrow{font:400 .62rem/1 var(--mono);letter-spacing:.3em;text-transform:uppercase;
+  color:var(--accent)}
+.lead__fact{font-family:var(--display);font-weight:800;font-stretch:112%;
+  font-size:clamp(1.05rem,1.6vw,1.5rem);line-height:1.16;margin-bottom:.5rem}
+.lead__fact span{color:var(--steel);font-family:var(--mono);font-weight:400;
   font-size:.72em;letter-spacing:.07em}
-.band--settle .btn{text-shadow:none}
+.lead__cta{display:flex;flex-direction:column;align-items:stretch;gap:.6rem}
+.lead .btn{text-shadow:none}
 
-/* ---- the static hero (phones, portrait tablets, reduced motion) --------
-   Composed, not a cropped fallback: the mark framed exactly like the desktop
-   panel, the copy beneath it on clean canvas. Nothing sits over the artwork,
-   so there is no type competing with the logo's own wordmark. */
-.still{position:absolute;inset:0;display:none;flex-direction:column;
-  justify-content:center;align-items:center;gap:clamp(1.3rem,4.5vh,2.4rem);
-  padding:5rem var(--gut) 2.4rem;text-align:center}
-.still__mark{height:min(38vh,19rem);aspect-ratio:1080/1112;flex:none;
-  background:url('../hero-mark.jpg') center/cover no-repeat;
-  border:1px solid var(--accent-muted);
-  box-shadow:0 0 0 1px rgba(5,3,8,.9),0 26px 80px rgba(0,0,0,.7),
-             0 0 70px rgba(224,169,74,.09)}
-.still__copy{position:relative;z-index:2}
-.still__h{font-size:clamp(1.75rem,7.4vw,2.7rem);max-width:14ch;margin:0 auto .8rem}
-.still__p{color:var(--text-secondary);max-width:32ch;margin:0 auto 1.5rem;font-size:.95rem;
-  line-height:1.55}
-.still__cta{display:flex;flex-direction:column;gap:.65rem;align-items:stretch;
-  width:min(20rem,100%);margin:0 auto}
+/* page-load entrance: the copy arrives once, then stays put. Scoped to .js so the
+   hero copy is never left invisible when scripting is off. */
+.js .lead__l,.js .lead__r{opacity:0;transform:translateY(14px);
+  transition:opacity .9s var(--ease) .25s,transform .9s var(--ease) .25s}
+.js .lead__r{transition-delay:.45s}
+.js .stage.lead-in .lead__l,.js .stage.lead-in .lead__r{opacity:1;transform:none}
 
-
-/* ---- mobile hero: the footage is 9:16, so a portrait phone shows it whole,
-   with no crop at all. The scrub runs here; only landscape phones and reduced
-   motion fall back to the static hero. Text now sits OVER footage, so the
-   per-band scrim and text-shadow system applies. ---------------------------- */
+/* ---- phones and portrait tablets: the 9:16 footage fills the screen ----- */
 @media (max-width:900px){
-  .hero{height:480vh}
   .frame{position:absolute;inset:0;height:auto;width:auto;aspect-ratio:auto;max-width:none;
     border:0;box-shadow:none}
   .frame::after{box-shadow:inset 0 0 90px rgba(5,3,8,.55)}
-  .bands{display:block}
-  .bands .band{position:absolute;left:0;right:0;top:0;bottom:auto;text-align:center;
+  .lead{display:block}
+  .lead__l{position:absolute;left:0;right:0;top:0;justify-self:stretch;text-align:center;
     padding:clamp(5rem,13vh,7.5rem) 1.15rem 0}
-  .bands .band__h{max-width:15ch;margin:0 auto;
-    font-size:clamp(1.55rem,7vw,2.4rem);line-height:1.06}
-  /* the per-band scrim: deepens with the band's own progress, dies out by 100% */
-  .bands .band::before{content:"";position:absolute;left:0;right:0;top:0;height:62vh;
-    z-index:-1;pointer-events:none;opacity:calc(.34 + .66*var(--k,1));
-    background:linear-gradient(180deg,rgba(5,3,8,.92) 0%,rgba(5,3,8,.72) 36%,
-      rgba(5,3,8,.34) 68%,rgba(5,3,8,0) 100%)}
-
-  /* the settle must fill the stage: its children anchor to the viewport top and
-     bottom, and an auto-height band would pin them both near the top */
-  .bands .band--settle{display:block;inset:0;padding:0}
-  /* justify-self must be reset: on an abspos box with left:0 and right:0, any
-     value other than normal/stretch shrink-wraps the box and aligns it instead
-     of letting it fill, which pushed these off to one side */
-  .bands .settle__l{position:absolute;top:0;left:0;right:0;justify-self:stretch;
-    text-align:center;padding:clamp(5rem,13vh,7.5rem) 1.15rem 0}
-  .bands .settle__r{position:absolute;bottom:clamp(1.5rem,5vh,3rem);left:0;right:0;
-    justify-self:stretch;padding:0 1.15rem;align-items:stretch;gap:.6rem}
-  .bands .settle__r::before{content:"";position:absolute;left:-1.15rem;right:-1.15rem;
-    bottom:calc(-1 * clamp(1.5rem,5vh,3rem));top:-2.5rem;z-index:-1;pointer-events:none;
-    background:linear-gradient(0deg,rgba(5,3,8,.92) 0%,rgba(5,3,8,.6) 55%,rgba(5,3,8,0) 100%)}
-  .settle__eyebrow{margin-bottom:.6rem}
-}
-
-/* the static-hero gates, character-for-character identical to the JS list */
-@media (orientation: landscape) and (pointer: coarse) and (max-height: 560px),
-       (prefers-reduced-motion: reduce){
-  .hero{height:auto}
-  .stage{position:relative;height:100vh;height:100svh}
-  .frame,.bands{display:none}
-  .still{display:flex}
+  .lead__h{margin:0 auto .7rem;max-width:14ch;font-size:clamp(1.6rem,7.2vw,2.4rem)}
+  .lead__p{margin:0 auto;max-width:28ch;font-size:.92rem}
+  .lead__l::before{content:"";position:absolute;left:0;right:0;top:0;height:56vh;z-index:-1;
+    pointer-events:none;
+    background:linear-gradient(180deg,rgba(5,3,8,.92) 0%,rgba(5,3,8,.72) 38%,
+      rgba(5,3,8,.32) 70%,rgba(5,3,8,0) 100%)}
+  .lead__r{position:absolute;left:0;right:0;bottom:clamp(1.5rem,5vh,3rem);
+    justify-self:stretch;align-items:stretch;text-align:center;
+    padding:0 1.15rem;gap:.55rem}
+  /* the eyebrow sits at the very top of this block, where the old scrim was
+     weakest — it measured 2.47:1 against the chair's lit pedestal. Extended and
+     deepened so the whole facts block clears the floor on the worst frame. */
+  .lead__r::before{content:"";position:absolute;left:-1.15rem;right:-1.15rem;top:-5.5rem;
+    bottom:calc(-1 * clamp(1.5rem,5vh,3rem));z-index:-1;pointer-events:none;
+    background:linear-gradient(0deg,rgba(5,3,8,.96) 0%,rgba(5,3,8,.92) 55%,
+      rgba(5,3,8,.72) 82%,rgba(5,3,8,0) 100%)}
+  .lead__cta{gap:.55rem}
 }
 
 /* ==========================================================================
@@ -591,6 +522,7 @@ section{position:relative}
   .edge--hard{opacity:1;clip-path:none}
   .trace{opacity:0}
   .lineup__done{opacity:1;transform:none}
+  .lead__l,.lead__r{opacity:1;transform:none}
 }
 
 /* pause every animation on a hidden tab — play-state does not inherit */
