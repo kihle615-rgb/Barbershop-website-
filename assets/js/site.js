@@ -232,7 +232,10 @@
 
   function attempt() {
     var q = video.play();
-    if (q && q.catch) q.catch(function () { failVideo(); });
+    /* A refused play() is not a load failure — the video is fine, the browser just
+       wants a gesture first. Leave it visible on its first frame; the gesture
+       unlock below retries. Only a real error event falls back to the still. */
+    if (q && q.catch) q.catch(function () {});
   }
 
   function loadHero() {
