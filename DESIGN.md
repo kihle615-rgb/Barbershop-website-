@@ -146,3 +146,32 @@ Recorded after the build, per the copy gate. Three things moved:
 
 The band map, palette, type trio, section order and signature element all shipped as
 planned. All copy shipped verbatim.
+
+
+---
+
+## Second pass — the client's follow-up
+
+Three changes after review:
+
+4. **The hero scrub now runs on phones.** The original build followed the standard's
+   default and sent every phone to the static hero. That default assumes landscape
+   footage that would have to be cover-cropped; this footage is 9:16, so a portrait
+   phone renders it *whole, with no crop at all* — the best screen for it, not the
+   worst. The gates dropped from five to two: landscape phones (no room for a portrait
+   journey) and reduced motion. Because text now sits over live footage on mobile, the
+   per-band scrim and text-shadow system applies there, anchored to the top of the frame
+   where the footage is darkest; the settle puts the facts on the top letterbox bar and
+   the actions on the bottom one.
+
+5. **The gallery is filled with real frames from the brand film** — the chair in shadow,
+   the chair lit, the clipper and shears, the chair square-on — and the section is
+   retitled "Inside the studio" to describe what is actually shown. The client's four
+   haircut photos never reached the build machine, and inventing haircut images for a
+   real barbershop's work gallery would misrepresent the business to its customers.
+   Swapping the real photos in is four files in `assets/studio/` plus the captions.
+
+6. **A map band before the footer.** Address panel on the left, live Google embed on the
+   right, tinted dark to match. Reachability is probed with a no-cors fetch rather than
+   the iframe's load event, which fires for the browser's own error page and is therefore
+   useless; when the probe fails the panel shows the address and a link out.

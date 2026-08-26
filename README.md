@@ -8,29 +8,32 @@ index.html            the whole page
 assets/css/site.css   all styling
 assets/js/site.js     the scroll-scrubbed hero and page behaviour
 assets/fonts/         three self-hosted variable fonts (latin subset, 148 KB total)
-assets/cuts/          ← your haircut photos go here
+assets/studio/        the four gallery images  ← replace these with your haircut photos
 DESIGN.md             the design decisions, written before the build
 ```
 
 ## Three things to do before this goes live
 
-### 1. Add the four haircut photos
+### 1. Swap in your own haircut photos
 
-Drop them in `assets/cuts/` with these exact names:
+The gallery currently shows four frames pulled from your own brand film — the chair and
+the tools. Those are real images of your studio, and the section is titled **"Inside the
+studio"** to say exactly that.
 
-| File | Currently captioned |
-|---|---|
-| `cut-1.jpg` | Taper & waves |
-| `cut-2.jpg` | High-top box fade |
-| `cut-3.jpg` | Burst fade, textured top |
-| `cut-4.jpg` | 360 waves, crisp edge |
+**The four haircut photos you sent never reached the build machine.** They came through in
+the chat but no image file was ever written to disk, so there was nothing to commit. To use
+them instead:
 
-Portrait photos work best (roughly 3:4). Until the files exist the gallery shows a
-labelled placeholder for each slot and nothing breaks. Once they are in, the grid
-switches automatically to its intended layout with `cut-1` as the large feature tile.
+1. Put your four photos in `assets/studio/` named `s1.jpg`, `s2.jpg`, `s3.jpg`, `s4.jpg`
+   (portrait, roughly 3:4, works best). They will replace the current frames with no other
+   changes needed.
+2. In `index.html`, under `<!-- ============ 5. THE STUDIO ============ -->`, change the
+   heading back to something like **"Out of the chair"**, update the `work__sub` line, and
+   rewrite the four `<figcaption>` and `alt` texts to describe the actual cuts.
 
-If the captions do not match your photos, edit the `<figcaption>` text in `index.html`
-under the `<!-- 5. THE WORK -->` section.
+The easiest way to get the photos onto the machine is to add them to this repository
+directly — drag them into `assets/studio/` on GitHub's web interface, or `git add` them
+from a computer that has them.
 
 ### 2. Set the real prices
 
@@ -98,8 +101,10 @@ the chair, the tools, the mark. The page settles exactly as the mark lands.
 - The video is fetched as a Blob so seeking works on hosts without HTTP Range support.
 - Two encodes exist; the browser is served whichever it can decode, and only that one
   is downloaded.
-- Phones, portrait tablets, landscape phones and anyone using "reduce motion" get a
-  composed static hero instead and **never download the video at all**.
+- **Phones get the scrub too.** The footage is 9:16, so a portrait phone shows it whole
+  with no cropping — it is the best screen for it. Only landscape phones (no room for a
+  portrait journey) and anyone using "reduce motion" get the composed static hero, and
+  they **never download the video at all**.
 - If the video fails for any reason, the page falls back to the still and stays complete.
 
 ### Regenerating the video assets
@@ -121,3 +126,20 @@ ffmpeg -ss 0 -to 6.70 -i source.mp4 -an -vf "scale=720:1280:flags=lanczos" \
 
 If you re-encode, update the byte sizes in the `SOURCES` array in `assets/js/site.js` —
 they are the fallback used when a host does not send `Content-Length`.
+
+
+## The map
+
+The bottom of the page embeds Google Maps for 19 Madiba Street. It needs no API key — it
+uses Google's `output=embed` URL, which is free and unlimited.
+
+If Google cannot be reached (a strict content policy, or no network) the page shows a
+styled panel with the address and a link out to Maps instead of an empty grey box.
+
+The embed is tinted dark to match the rest of the site, via this line in `assets/css/site.css`:
+
+```css
+.map__embed{ filter:invert(.92) hue-rotate(180deg) saturate(.7) contrast(.92) }
+```
+
+If you would rather have Google's normal light-coloured map, delete that `filter` line.

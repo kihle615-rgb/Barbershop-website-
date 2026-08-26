@@ -480,10 +480,11 @@
   /* ======================================================================
      THE FIVE STATIC-HERO GATES — identical strings in CSS and JS
      ====================================================================== */
+  /* Only two gates now. The footage is 9:16, so a portrait phone renders it whole
+     with no crop and the scrub is the better mobile experience. A landscape phone
+     has no room for a portrait journey, and reduced motion never gets video.
+     These strings must stay character-for-character identical to the CSS. */
   var GATES = [
-    '(max-width: 720px)',
-    '(orientation: portrait) and (max-width: 1024px)',
-    '(orientation: portrait) and (pointer: coarse)',
     '(orientation: landscape) and (pointer: coarse) and (max-height: 560px)',
     '(prefers-reduced-motion: reduce)'
   ];
@@ -531,6 +532,39 @@
     if (e.matches) pinToFinalStates();
     else applyHeroMode();
   });
+
+  /* iOS refuses to honour currentTime until the decoder has been unlocked inside a
+     user gesture. One silent play/pause on the first touch does it; harmless elsewhere. */
+  (function unlockOnFirstGesture() {
+    if (!video) return;
+    function unlock() {
+      var q = video.play();
+      if (q && q.then) q.then(function () { video.pause(); }).catch(function () {});
+      else { try { video.pause(); } catch (e) {} }
+      removeEventListener('touchstart', unlock);
+      removeEventListener('pointerdown', unlock);
+    }
+    addEventListener('touchstart', unlock, { once: true, passive: true });
+    addEventListener('pointerdown', unlock, { once: true });
+  })();
+
+  /* The Google Maps embed is blocked in some contexts (strict CSP, no network).
+     Show the address panel fallback rather than an empty grey box. */
+  (function mapFallback() {
+    var frame = document.querySelector('.map__frame');
+    var embed = document.querySelector('.map__embed');
+    if (!frame || !embed) return;
+    var settled = false;
+    var done = function (state) { if (!settled) { settled = true; frame.dataset.state = state; } };
+    /* The iframe's load event is useless here: Chromium fires it for its own error
+       page too. Probe reachability instead — a no-cors fetch resolves opaquely when
+       Google is reachable and rejects when the network or a CSP blocks it. */
+    if (!window.fetch) { done('ok'); return; }
+    fetch('https://www.google.com/favicon.ico', { mode: 'no-cors', cache: 'no-store' })
+      .then(function () { done('ok'); })
+      .catch(function () { done('blocked'); });
+    setTimeout(function () { done('blocked'); }, 8000);
+  })();
 
   applyHeroMode();
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) pinToFinalStates();

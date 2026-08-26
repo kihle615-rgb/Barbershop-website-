@@ -274,12 +274,46 @@ a{color:inherit}
 .still__cta{display:flex;flex-direction:column;gap:.65rem;align-items:stretch;
   width:min(20rem,100%);margin:0 auto}
 
-/* the five gates, character-for-character identical to the JS list */
-@media (max-width:720px),
-       (orientation:portrait) and (max-width:1024px),
-       (orientation:portrait) and (pointer:coarse),
-       (orientation:landscape) and (pointer:coarse) and (max-height:560px),
-       (prefers-reduced-motion:reduce){
+
+/* ---- mobile hero: the footage is 9:16, so a portrait phone shows it whole,
+   with no crop at all. The scrub runs here; only landscape phones and reduced
+   motion fall back to the static hero. Text now sits OVER footage, so the
+   per-band scrim and text-shadow system applies. ---------------------------- */
+@media (max-width:900px){
+  .hero{height:480vh}
+  .frame{position:absolute;inset:0;height:auto;width:auto;aspect-ratio:auto;max-width:none;
+    border:0;box-shadow:none}
+  .frame::after{box-shadow:inset 0 0 90px rgba(5,3,8,.55)}
+  .bands{display:block}
+  .bands .band{position:absolute;left:0;right:0;top:0;bottom:auto;text-align:center;
+    padding:clamp(5rem,13vh,7.5rem) 1.15rem 0}
+  .bands .band__h{max-width:15ch;margin:0 auto;
+    font-size:clamp(1.55rem,7vw,2.4rem);line-height:1.06}
+  /* the per-band scrim: deepens with the band's own progress, dies out by 100% */
+  .bands .band::before{content:"";position:absolute;left:0;right:0;top:0;height:62vh;
+    z-index:-1;pointer-events:none;opacity:calc(.34 + .66*var(--k,1));
+    background:linear-gradient(180deg,rgba(5,3,8,.92) 0%,rgba(5,3,8,.72) 36%,
+      rgba(5,3,8,.34) 68%,rgba(5,3,8,0) 100%)}
+
+  /* the settle must fill the stage: its children anchor to the viewport top and
+     bottom, and an auto-height band would pin them both near the top */
+  .bands .band--settle{display:block;inset:0;padding:0}
+  /* justify-self must be reset: on an abspos box with left:0 and right:0, any
+     value other than normal/stretch shrink-wraps the box and aligns it instead
+     of letting it fill, which pushed these off to one side */
+  .bands .settle__l{position:absolute;top:0;left:0;right:0;justify-self:stretch;
+    text-align:center;padding:clamp(5rem,13vh,7.5rem) 1.15rem 0}
+  .bands .settle__r{position:absolute;bottom:clamp(1.5rem,5vh,3rem);left:0;right:0;
+    justify-self:stretch;padding:0 1.15rem;align-items:stretch;gap:.6rem}
+  .bands .settle__r::before{content:"";position:absolute;left:-1.15rem;right:-1.15rem;
+    bottom:calc(-1 * clamp(1.5rem,5vh,3rem));top:-2.5rem;z-index:-1;pointer-events:none;
+    background:linear-gradient(0deg,rgba(5,3,8,.92) 0%,rgba(5,3,8,.6) 55%,rgba(5,3,8,0) 100%)}
+  .settle__eyebrow{margin-bottom:.6rem}
+}
+
+/* the static-hero gates, character-for-character identical to the JS list */
+@media (orientation: landscape) and (pointer: coarse) and (max-height: 560px),
+       (prefers-reduced-motion: reduce){
   .hero{height:auto}
   .stage{position:relative;height:100vh;height:100svh}
   .frame,.bands{display:none}
@@ -429,39 +463,50 @@ section{position:relative}
 .work__head{margin-bottom:clamp(2rem,4vw,3rem);max-width:40ch}
 .work__head h2{font-size:clamp(2rem,4.4vw,3.2rem);margin-bottom:.7rem}
 .work__sub{color:var(--text-secondary)}
-.work__grid{display:grid;gap:clamp(.6rem,1.4vw,1.1rem);
-  grid-template-columns:repeat(2,1fr)}
-@media (min-width:880px){
-  .work__grid{grid-template-columns:repeat(4,1fr);grid-auto-rows:minmax(0,auto)}
-  .shot--a{grid-column:span 2;grid-row:span 2}
-  .shot--d{grid-column:span 2}
-}
+.work__grid{display:grid;gap:clamp(.6rem,1.4vw,1.1rem);grid-template-columns:repeat(2,1fr)}
+@media (min-width:880px){.work__grid{grid-template-columns:repeat(4,1fr)}}
 .shot{margin:0;position:relative;overflow:hidden;background:var(--panel);
   border:1px solid var(--line)}
 .shot img{width:100%;height:100%;object-fit:cover;aspect-ratio:3/4;
-  transition:transform .9s var(--ease),filter .9s var(--ease);filter:saturate(.92)}
-.shot--a img{aspect-ratio:1/1}
-.shot--d img{aspect-ratio:16/10}
-.shot:hover img{transform:scale(1.035);filter:saturate(1.05)}
-.shot figcaption{position:absolute;left:0;right:0;bottom:0;padding:1.6rem .9rem .75rem;
+  transition:transform .9s var(--ease),filter .9s var(--ease);filter:saturate(.94)}
+.shot:hover img{transform:scale(1.035);filter:saturate(1.06)}
+.shot figcaption{position:absolute;left:0;right:0;bottom:0;padding:1.8rem .9rem .8rem;
   font:400 .58rem/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;
   color:var(--text-primary);
-  background:linear-gradient(180deg,transparent,rgba(5,3,8,.88));
+  background:linear-gradient(180deg,transparent,rgba(5,3,8,.9));
   text-shadow:0 1px 3px rgba(5,3,8,.9)}
-/* designed empty state until the shop's own photos are dropped in */
+/* safety net if an image ever goes missing */
 .shot.is-empty img{display:none}
 .shot.is-empty{display:grid;place-items:center;aspect-ratio:3/4;
   background:repeating-linear-gradient(135deg,rgba(21,17,28,.9) 0 12px,rgba(11,8,13,.9) 12px 24px)}
-/* While photos are missing the feature spans would leave big striped voids,
-   so the grid falls back to an even row. It returns the moment the files land. */
-.work__grid.awaiting{grid-template-columns:repeat(2,1fr)}
-@media (min-width:880px){.work__grid.awaiting{grid-template-columns:repeat(4,1fr)}}
-.work__grid.awaiting .shot{grid-column:auto;grid-row:auto}
-.work__grid.awaiting .shot.is-empty{aspect-ratio:4/5}
 .shot.is-empty::before{content:attr(data-slot);display:block;padding:1rem;text-align:center;
   font:400 .56rem/1.9 var(--mono);letter-spacing:.2em;text-transform:uppercase;
   color:var(--steel-dim)}
 .shot.is-empty figcaption{background:none}
+
+/* ==========================================================================
+   8. THE MAP
+   ========================================================================== */
+.map{display:grid;grid-template-columns:1fr;border-top:1px solid var(--line)}
+@media (min-width:900px){.map{grid-template-columns:minmax(20rem,34%) 1fr}}
+.map__panel{padding:clamp(2.6rem,6vh,4.5rem) var(--gut);display:flex;flex-direction:column;
+  align-items:flex-start;gap:.9rem;background:var(--panel)}
+.map__panel h2{font-size:clamp(1.7rem,3.4vw,2.5rem)}
+.map__addr{color:var(--text-primary);line-height:1.7}
+.map__hours{font:400 .68rem/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--steel);margin-bottom:.6rem}
+.map__frame{position:relative;min-height:clamp(18rem,44vh,26rem);background:var(--canvas-deep)}
+.map__embed{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;
+  filter:invert(.92) hue-rotate(180deg) saturate(.7) contrast(.92)}
+.map__offline{position:absolute;inset:0;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:1rem;text-align:center;padding:2rem;
+  background:repeating-linear-gradient(135deg,rgba(21,17,28,.9) 0 14px,rgba(11,8,13,.9) 14px 28px)}
+.map__offline svg{width:2.4rem;height:2.4rem;fill:none;stroke:var(--accent-muted);
+  stroke-width:1.6;stroke-linejoin:round}
+.map__offline p{font-size:.9rem;color:var(--text-secondary);line-height:1.7}
+.map__offline a{color:var(--accent)}
+.map__frame[data-state="blocked"] .map__embed{display:none}
+.map__frame[data-state="blocked"] .map__offline{display:flex}
 
 /* ==========================================================================
    6. REVIEWS — offset split, unlike its neighbours
