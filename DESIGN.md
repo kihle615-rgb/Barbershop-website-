@@ -206,3 +206,32 @@ Extending and deepening it brings the four measured elements to 17.91, 6.23, 8.0
 
 Reduced motion still never downloads the video, and the hero copy is now scoped behind a
 `.js` class so it can never be left invisible when scripting is off.
+
+
+---
+
+## Fourth pass — the real work goes in
+
+The client's five haircut photos finally reached the repository, so every stand-in image
+is gone. `tools.jpg`, `chair.jpg` and the four `studio/` film frames are deleted; nothing
+placeholder remains on the page.
+
+- **The premise section** now carries the high-top with the sides taken to skin — the
+  clearest single illustration of the claim the section makes, since the fade blends out
+  to nothing while the shape-up stays a hard edge. Captioned with that sentence.
+- **The gallery** is the other four, retitled back to "Out of the chair" with each cut
+  named for what it is: waves and line-up, burst fade, box fade, 360 waves.
+- **The visit section** loses its photo rather than reusing one, and its right column
+  becomes a booking panel instead — a surface with its own ground, so it holds against
+  the seven-row hours table beside it. The map band directly below already carries the
+  place visually, which is what the chair photo had been doing.
+
+Two things done to the files themselves: all five were resized to 900px and stripped of
+metadata (WhatsApp had already removed EXIF, so no location data was ever present), and
+the high-top photo was cropped along its top edge to remove a third-party app watermark
+sitting in the corner.
+
+The photos are shot in a bright salon against yellow walls and brown sofas, which fights
+a near-black page. They are graded down (`saturate(.86) contrast(1.06) brightness(.94)`)
+so they sit in the design, and return to full colour on hover — the restraint is for the
+page, and a closer look gives the honest photograph.

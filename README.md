@@ -8,32 +8,37 @@ index.html            the whole page
 assets/css/site.css   all styling
 assets/js/site.js     the scroll-scrubbed hero and page behaviour
 assets/fonts/         three self-hosted variable fonts (latin subset, 148 KB total)
-assets/studio/        the four gallery images  ← replace these with your haircut photos
+assets/work/          your five haircut photos
 DESIGN.md             the design decisions, written before the build
 ```
 
 ## Three things to do before this goes live
 
-### 1. Swap in your own haircut photos
+### 1. (Done) Your photos are on the site
 
-The gallery currently shows four frames pulled from your own brand film — the chair and
-the tools. Those are real images of your studio, and the section is titled **"Inside the
-studio"** to say exactly that.
+Your five cuts are in `assets/work/`:
 
-**The four haircut photos you sent never reached the build machine.** They came through in
-the chat but no image file was ever written to disk, so there was nothing to commit. To use
-them instead:
+| File | Where it appears | Caption |
+|---|---|---|
+| `skin-fade.jpg` | "No line where it begins" section | Soft where it fades, hard where it lands. |
+| `waves-lineup.jpg` | Gallery | Waves & line-up |
+| `burst-fade.jpg` | Gallery | Burst fade |
+| `box-fade.jpg` | Gallery | Box fade |
+| `waves-top.jpg` | Gallery | 360 waves |
 
-1. Put your four photos in `assets/studio/` named `s1.jpg`, `s2.jpg`, `s3.jpg`, `s4.jpg`
-   (portrait, roughly 3:4, works best). They will replace the current frames with no other
-   changes needed.
-2. In `index.html`, under `<!-- ============ 5. THE STUDIO ============ -->`, change the
-   heading back to something like **"Out of the chair"**, update the `work__sub` line, and
-   rewrite the four `<figcaption>` and `alt` texts to describe the actual cuts.
+All five were resized to 900px wide and stripped of metadata. `skin-fade.jpg` was
+cropped along the top to remove a "Utool" app watermark that was in the corner of the
+original.
 
-The easiest way to get the photos onto the machine is to add them to this repository
-directly — drag them into `assets/studio/` on GitHub's web interface, or `git add` them
-from a computer that has them.
+To change a photo, replace the file in `assets/work/` keeping the same name — nothing
+else needs editing. To change what a photo is called on the page, edit its
+`<figcaption>` in `index.html`. If you swap a photo for a different cut, update its
+`alt` text too, since that is what screen readers and Google read.
+
+Photos are shown slightly darkened so they sit in the dark page, and return to their
+true colour when you hover over them. If you would rather they always show at full
+brightness, delete the `filter:` lines under `.shot img` and `.premise__fig img` in
+`assets/css/site.css`.
 
 ### 2. Set the real prices
 
