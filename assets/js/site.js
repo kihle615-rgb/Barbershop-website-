@@ -459,8 +459,6 @@
         (b.notes ? '<dt>Notes</dt><dd>' + esc(b.notes) + '</dd>' : '');
       var text = compose(b);
       $('#bk-wa').href = 'https://wa.me/' + SHOP_WA + '?text=' + encodeURIComponent(text);
-      $('#bk-sms').href = 'sms:' + b.phoneIntl + '?body=' + encodeURIComponent(text);
-      $('#bk-copy').dataset.text = text;
       form.hidden = true;
       receipt.hidden = false;
       $('#bk-ref').setAttribute('tabindex', '-1');
@@ -505,21 +503,6 @@
       };
       try { localStorage.setItem(STORE, JSON.stringify(b)); } catch (e2) {}
       renderReceipt(b);
-    });
-
-    $('#bk-copy').addEventListener('click', function () {
-      var btn = this, text = btn.dataset.text || '';
-      var done = function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy details'; }, 1800); };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done, fallback);
-      } else fallback();
-      function fallback() {
-        var ta = document.createElement('textarea');
-        ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
-        document.body.appendChild(ta); ta.select();
-        try { document.execCommand('copy'); done(); } catch (e3) { btn.textContent = 'Press and hold the text to copy'; }
-        document.body.removeChild(ta);
-      }
     });
 
     function reset() {

@@ -133,21 +133,21 @@ receipt.
 ### What actually happens when someone books
 
 **Be clear on this: the website cannot send messages by itself.** It is a plain set of
-files on a web host — there is no server behind it, no account, nothing running. So the
-receipt screen gives three ways to get the booking where it needs to go:
+files on a web host — there is no server behind it, no account, nothing running.
 
-1. **Send to the shop** — the big gold button. It opens WhatsApp on the client's phone
-   with the whole booking already typed out, addressed to **065 719 6289**. They press
-   send. You get it. This is one tap, and it costs nothing.
-2. **Text myself a copy** — opens their SMS app with the same message addressed to their
-   own number, so they have a record outside WhatsApp.
-3. **Copy details** — puts the message on their clipboard.
+So the receipt screen does two things:
 
-The client also keeps a copy automatically: once they send it to you on WhatsApp, the
-message is sitting in their own chat with the shop. That thread *is* their receipt.
+1. **Tells the client to screenshot it.** The reference and all the details are on
+   screen, and a photo on their phone is the record they bring in with them.
+2. **Hands the booking to you in one tap.** The gold **Send to the shop** button opens
+   WhatsApp on their phone with the whole booking already typed out, addressed to
+   **065 719 6289**. They press send. You get it. No cost, no account.
 
-The receipt screen says plainly that nothing is booked until they press send, so nobody
-turns up thinking they have a slot when you never got the message.
+The client ends up with two copies without doing anything clever: the screenshot, and the
+message itself sitting in their own WhatsApp chat with the shop once they have sent it.
+
+The receipt says plainly that nothing is booked until they press send, so nobody turns up
+thinking they have a slot when you never got the message.
 
 The last booking made on a phone is remembered for 60 days, so if someone closes the page
 they can reopen it and see their reference again.

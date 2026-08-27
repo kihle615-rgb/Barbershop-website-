@@ -253,6 +253,12 @@ and hand it off, which is one tap and free. The receipt screen says so in plain 
 "Nothing is booked until you send it to the shop" — because the failure the client cannot
 afford is someone arriving for a slot the barber never received.
 
+**The client's copy is a screenshot.** The first build offered "text myself a copy" and
+"copy details" alongside the send button. The client corrected it, and they were right:
+nobody in this shop's world SMSs themselves a receipt, they screenshot the screen. So the
+receipt now asks for exactly that, and the action row is a single button. Three choices
+became one instruction and one action, which is a better screen than the one it replaced.
+
 **Shape.** A native `<dialog>`, so focus trapping, Escape, and background inertness come
 from the platform rather than from script. Three steps — When, What, Who — numbered,
 which is the legitimate case for numbering: a booking genuinely is a sequence, and the

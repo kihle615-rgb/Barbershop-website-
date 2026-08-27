@@ -625,6 +625,15 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 .bk__lines dt{font:400 .6rem/1.5 var(--mono);letter-spacing:.16em;text-transform:uppercase;
   color:var(--steel-dim)}
 .bk__lines dd{margin:0;font-size:.98rem;line-height:1.5;color:var(--text-primary)}
+/* the client's own record is a screenshot, so ask for one plainly */
+.bk__keep{display:flex;gap:.9rem;align-items:flex-start;
+  padding:1rem 1.1rem;margin-bottom:.9rem;
+  background:rgba(224,169,74,.07);border:1px solid var(--accent-muted);border-radius:2px}
+.bk__keep svg{width:1.5rem;height:1.5rem;flex:none;margin-top:.1rem;
+  fill:none;stroke:var(--accent);stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
+.bk__keep p{font-size:.88rem;line-height:1.6;color:var(--text-secondary)}
+.bk__keep b{color:var(--text-primary);font-weight:500}
+
 .bk__note{font-size:.85rem;line-height:1.6;color:var(--text-secondary);
   padding:.9rem 1rem;background:var(--panel);border-left:2px solid var(--accent-muted);
   margin-bottom:1.4rem}
