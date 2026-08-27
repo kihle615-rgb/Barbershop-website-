@@ -11,6 +11,19 @@
 
   var reduceMQ = matchMedia('(prefers-reduced-motion: reduce)');
 
+  /* Safari below 14 has addListener but not addEventListener on a MediaQueryList,
+     and the TypeError would take down everything defined after it. */
+  function onMQ(mq, fn) {
+    if (mq.addEventListener) mq.addEventListener('change', fn);
+    else if (mq.addListener) mq.addListener(fn);
+  }
+  /* One module failing must not silence the rest of the page. */
+  function guard(name, fn) {
+    try { fn(); } catch (e) {
+      if (window.console && console.warn) console.warn('[efs] ' + name + ' failed:', e);
+    }
+  }
+
   /* scripting is on: entrance states in the stylesheet may now hide things */
   document.documentElement.classList.add('js');
 
@@ -21,7 +34,7 @@
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
   /* Open / closed, computed in the shop's timezone, not the visitor's */
-  (function openNow() {
+  guard('openNow', function () {
     var el = $('#open-now');
     if (!el) return;
     var mins;
@@ -42,7 +55,7 @@
     var isOpen = mins >= (10 * 60 + 30) && mins < (20 * 60);
     el.dataset.state = isOpen ? 'open' : 'closed';
     el.textContent = isOpen ? '● Open now — until 20:00' : '● Closed — opens 10:30';
-  })();
+  });
 
   /* Gallery: a labelled placeholder if an image is ever missing */
   $$('.shot').forEach(function (fig, i) {
@@ -67,7 +80,7 @@
      SECTION ENTRANCES
      ====================================================================== */
   var groupSel = '.premise, .board, .marks, .lineup, .work, .says, .visit, .map, .foot';
-  (function entrances() {
+  guard('entrances', function () {
     var groups = $$(groupSel);
     groups.forEach(function (g) {
       Array.prototype.filter.call(g.children, function (c) { return c.nodeType === 1; })
@@ -86,12 +99,12 @@
       });
     }, { rootMargin: '0px 0px -12% 0px', threshold: 0.08 });
     groups.forEach(function (g) { io.observe(g); });
-  })();
+  });
 
   /* ======================================================================
      THE GUARD RAIL — page progress drawn as a fade, ticked in guard numbers
      ====================================================================== */
-  (function rail() {
+  guard('rail', function () {
     var fade = $('.rail__fade');
     var links = $$('.rail__list a');
     var targets = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
@@ -121,14 +134,14 @@
     addEventListener('scroll', onScroll, { passive: true });
     addEventListener('resize', onScroll);
     paint();
-  })();
+  });
 
   /* ======================================================================
      THE ONE INTERACTIVE MOMENT — press and hold to line it up
      ====================================================================== */
   var lineUpAPI = { finish: function () {} };
 
-  (function lineUp() {
+  guard('lineUp', function () {
     var section = $('.lineup');
     var btn = $('.hold');
     var art = $('.lineup__art');
@@ -198,7 +211,7 @@
       section.classList.add('is-done');
       $('.hold__label').textContent = 'Lined up';
     };
-  })();
+  });
 
   /* ======================================================================
      THE HERO — the footage plays itself
@@ -273,7 +286,7 @@
       loadHero();
     }
   }
-  reduceMQ.addEventListener('change', function () {
+  onMQ(reduceMQ, function () {
     applyHeroMode();
     if (reduceMQ.matches) {
       $$(groupSel).forEach(function (g) { g.classList.add('in', 'settled'); });
@@ -287,7 +300,7 @@
   if (stage) requestAnimationFrame(function () { stage.classList.add('lead-in'); });
 
   /* iOS will not start a video from script until a gesture has unlocked the decoder */
-  (function unlockOnFirstGesture() {
+  guard('unlockOnFirstGesture', function () {
     if (!video) return;
     function unlock() {
       if (!reduceMQ.matches && video.paused && !video.ended) attempt();
@@ -296,7 +309,7 @@
     }
     addEventListener('touchstart', unlock, { once: true, passive: true });
     addEventListener('pointerdown', unlock, { once: true });
-  })();
+  });
 
 
   /* ======================================================================
@@ -306,9 +319,77 @@
      reference, and hands over a written message the client sends to the shop
      in one tap — which also leaves the client a copy in their own chat.
      ====================================================================== */
-  (function booking() {
+  guard('booking', function () {
     var dlg = $('#booking');
-    if (!dlg || !dlg.showModal) return;
+    if (!dlg) return;
+
+    /* Older in-app browsers (a link opened inside WhatsApp or Facebook runs in a
+       WebView that can lag well behind the real browser) have no showModal. The
+       flow must still run there, so fall back to a plain fixed overlay rather
+       than bailing out — bailing out let the trigger's href fire and sent people
+       straight to WhatsApp before they had filled anything in. */
+    var veil = null, lastFocus = null, usingFallback = false;
+
+    function focusables() {
+      return $$('a[href], button:not([disabled]), input:not([disabled]), textarea, select', dlg)
+        .filter(function (el) { return el.getClientRects().length > 0; });
+    }
+    function trapTab(e) {
+      if (e.key !== 'Tab') return;
+      var f = focusables();
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    function onEsc(e) { if (e.key === 'Escape') { e.preventDefault(); closeDlg(); } }
+
+    function focusFirst() {
+      var f = focusables();
+      /* skip the close button so the first field is what receives focus */
+      var target = f.filter(function (el) { return !el.closest('.bk__x'); })[0] || f[0];
+      if (target) target.focus({ preventScroll: true });
+    }
+
+    function openDlg() {
+      lastFocus = document.activeElement;
+      if (dlg.showModal) {
+        try { dlg.showModal(); focusFirst(); return; } catch (e) {}
+      }
+      usingFallback = true;
+      dlg.classList.add('bk--fallback');
+      dlg.setAttribute('open', '');
+      dlg.setAttribute('role', 'dialog');
+      dlg.setAttribute('aria-modal', 'true');
+      if (!veil) {
+        veil = document.createElement('div');
+        veil.className = 'bk-veil';
+        veil.addEventListener('click', closeDlg);
+        document.body.appendChild(veil);
+      }
+      veil.hidden = false;
+      document.body.style.overflow = 'hidden';
+      document.addEventListener('keydown', onEsc);
+      document.addEventListener('keydown', trapTab);
+      focusFirst();
+    }
+    function closeDlg() {
+      if (usingFallback) {
+        dlg.removeAttribute('open');
+        dlg.classList.remove('bk--fallback');
+        if (veil) veil.hidden = true;
+        document.body.style.overflow = '';
+        document.removeEventListener('keydown', onEsc);
+        document.removeEventListener('keydown', trapTab);
+      } else if (dlg.close) {
+        try { dlg.close(); } catch (e) {}
+      }
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    /* the close button lives in a method="dialog" form, which does nothing in
+       the fallback path, so drive it explicitly too */
+    var xBtn = $('.bk__x button', dlg);
+    if (xBtn) xBtn.addEventListener('click', function (e) { e.preventDefault(); closeDlg(); });
 
     var SHOP_WA = '27657196289';
     var OPEN_MIN = 10 * 60 + 30, CLOSE_MIN = 20 * 60, STEP_MIN = 30, LEAD_MIN = 30;
@@ -551,15 +632,15 @@
         e.preventDefault();
         reset();
         showLast();
-        dlg.showModal();
+        openDlg();
       });
     });
-  })();
+  });
 
   /* ======================================================================
      THE MAP — fall back to the address panel where Google can't be reached
      ====================================================================== */
-  (function mapFallback() {
+  guard('mapFallback', function () {
     var frame = $('.map__frame');
     var embed = $('.map__embed');
     if (!frame || !embed) return;
@@ -573,5 +654,5 @@
       .then(function () { done('ok'); })
       .catch(function () { done('blocked'); });
     setTimeout(function () { done('blocked'); }, 8000);
-  })();
+  });
 })();

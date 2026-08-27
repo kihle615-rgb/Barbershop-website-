@@ -543,6 +543,10 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
   color:var(--text-primary);overflow:auto;
   box-shadow:0 40px 120px rgba(0,0,0,.8),0 0 90px rgba(224,169,74,.08)}
 .bk::backdrop{background:rgba(3,2,5,.82);backdrop-filter:blur(5px)}
+/* fallback path for browsers with no showModal(): a plain fixed overlay */
+.bk-veil{position:fixed;inset:0;z-index:200;background:rgba(3,2,5,.82);backdrop-filter:blur(5px)}
+.bk--fallback{position:fixed;z-index:210;top:50%;left:50%;
+  transform:translate(-50%,-50%);margin:0;display:block}
 .bk[open]{animation:bkIn .32s var(--ease)}
 @keyframes bkIn{from{opacity:0;transform:translateY(10px)}}
 

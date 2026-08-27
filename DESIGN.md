@@ -290,3 +290,46 @@ order carries information the reader needs.
    `:first-of-type` counts by element type: in step two the first `<label>` is the notes
    field, several rows down, so its top margin was removed and the label collapsed onto
    the last cut chip. Anchoring to `legend + .bk__label` says what was actually meant.
+
+
+---
+
+## Sixth pass — the booking flow was jumping to WhatsApp
+
+The client reported that opening the booking and picking a time sent them straight to
+WhatsApp, with no chance to enter a cut or a name. It did not reproduce in Chromium, and
+the cause was a guard written for the wrong failure:
+
+```js
+if (!dlg || !dlg.showModal) return;   // the whole module bailed out
+```
+
+The booking triggers are real `wa.me` links that the script upgrades into the dialog — a
+deliberate choice so booking still works with scripting off. But when that guard fired,
+no handler was ever attached, so the link did exactly what it says on the tin and opened
+WhatsApp. A safety net for one failure became the failure. `showModal` is missing in
+older in-app WebViews, which is what a link opened from inside WhatsApp or Facebook runs
+in — precisely how this shop's clients arrive.
+
+Three changes:
+
+1. **The modal no longer depends on `showModal`.** Where it exists it is used, with its
+   platform focus trap and inert background. Where it does not, the dialog opens as a
+   fixed overlay with a scrim, and Escape, tab trapping, scroll locking and click-outside
+   are wired by hand. The two paths render identically.
+2. **`matchMedia` listeners go through a shim.** Safari below 14 has `addListener` but
+   not `addEventListener` on a `MediaQueryList`, and the `TypeError` would have taken
+   down every module defined after it.
+3. **Each module is wrapped in a `guard()`.** One failing feature now warns to the
+   console and leaves the rest of the page working, rather than silencing everything
+   after it.
+
+A fourth thing surfaced while testing the fallback: focus never entered the dialog,
+because `reset()` focuses the first field before the dialog is on screen, and focusing a
+`display:none` element does nothing. Focus is now set after the dialog is visible, on
+both paths.
+
+The lesson worth keeping: the progressive-enhancement fallback and the feature guard were
+pulling in opposite directions. The href existed so the button would work without
+scripting; the guard made the button take the href *while scripting was running*, which
+is the one case the href was never meant to cover.
