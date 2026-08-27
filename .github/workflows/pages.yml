@@ -10,7 +10,6 @@ permissions:
   pages: write
   id-token: write
 
-# one deploy at a time; never cancel one that is mid-flight
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -26,8 +25,6 @@ jobs:
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true          # turns Pages on the first time this runs
 
       - name: Upload the site
         uses: actions/upload-pages-artifact@v3
@@ -37,3 +34,35 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+
+      # the runner has internet; this session does not. Prove the site is really up.
+      - name: Verify the live site
+        run: |
+          URL="${{ steps.deployment.outputs.page_url }}"
+          echo "Checking $URL"
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            CODE=$(curl -s -o page.html -w '%{http_code}' -L "$URL" || echo 000)
+            echo "attempt $i -> HTTP $CODE"
+            [ "$CODE" = "200" ] && break
+            sleep 10
+          done
+          [ "$CODE" = "200" ] || { echo "::error::site did not return 200"; exit 1; }
+          echo "--- checks ---"
+          grep -q "<title>Eazy Fade Studio" page.html && echo "OK  title"        || { echo "FAIL title"; exit 1; }
+          grep -q "A fade is a line"          page.html && echo "OK  headline"     || { echo "FAIL headline"; exit 1; }
+          grep -q "R100"                      page.html && echo "OK  prices"       || { echo "FAIL prices"; exit 1; }
+          grep -q "Book a chair"              page.html && echo "OK  booking"      || { echo "FAIL booking"; exit 1; }
+          grep -q "27657196289"               page.html && echo "OK  whatsapp"     || { echo "FAIL whatsapp"; exit 1; }
+          echo "--- assets ---"
+          for f in assets/hero.webm assets/hero.mp4 assets/css/site.css assets/js/site.js \
+                   assets/work/skin-fade.jpg assets/work/waves-lineup.jpg \
+                   assets/work/burst-fade.jpg assets/work/box-fade.jpg \
+                   assets/work/waves-top.jpg assets/fonts/archivo-var.woff2 \
+                   assets/hero-still.jpg assets/hero-poster.jpg; do
+            C=$(curl -s -o /dev/null -w '%{http_code}' -L "$URL$f")
+            S=$(curl -s -o /dev/null -w '%{size_download}' -L "$URL$f")
+            echo "$C  ${S} bytes  $f"
+            [ "$C" = "200" ] || { echo "::error::$f returned $C"; exit 1; }
+          done
+          echo ""
+          echo "LIVE AND VERIFIED: $URL"
