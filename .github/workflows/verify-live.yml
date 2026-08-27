@@ -1,0 +1,54 @@
+name: Verify live sites
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/magical-cray-yod3jy]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check both hosts
+        run: |
+          check () {
+            NAME="$1"; URL="$2"
+            echo ""
+            echo "=============================================="
+            echo " $NAME"
+            echo " $URL"
+            echo "=============================================="
+            CODE=000
+            for i in $(seq 1 24); do
+              CODE=$(curl -s -o page.html -w '%{http_code}' -L --max-time 30 "$URL" || echo 000)
+              OK=$(grep -c "R100" page.html 2>/dev/null || echo 0)
+              echo "  attempt $i -> HTTP $CODE (content present: $OK)"
+              if [ "$CODE" = "200" ] && [ "$OK" != "0" ]; then break; fi
+              sleep 10
+            done
+            if [ "$CODE" != "200" ]; then
+              echo "  RESULT: NOT SERVING (HTTP $CODE)"
+              return 1
+            fi
+            for pat in "<title>Eazy Fade Studio" "A fade is a line" "R100" "R250" \
+                       "Book a chair" "27657196289" "19 Madiba St" "House call"; do
+              if grep -q "$pat" page.html; then echo "  OK    $pat"; else echo "  FAIL  $pat"; return 1; fi
+            done
+            for f in assets/hero.webm assets/hero.mp4 assets/css/site.css assets/js/site.js \
+                     assets/work/skin-fade.jpg assets/work/waves-lineup.jpg \
+                     assets/work/burst-fade.jpg assets/work/box-fade.jpg \
+                     assets/work/waves-top.jpg assets/hero-still.jpg \
+                     assets/fonts/archivo-var.woff2; do
+              R=$(curl -s -o /dev/null -w '%{http_code} %{size_download}' -L --max-time 60 "$URL$f")
+              echo "  $R  $f"
+              case "$R" in 200\ *) ;; *) echo "  FAIL asset $f"; return 1 ;; esac
+            done
+            echo "  RESULT: LIVE AND VERIFIED"
+            return 0
+          }
+
+          FAIL=0
+          check "GitHub Pages" "https://kihle615-rgb.github.io/Barbershop-website-/" || FAIL=1
+          check "Vercel"       "https://eazyfade-uaa-agency.vercel.app/"             || FAIL=1
+          echo ""
+          [ "$FAIL" = "0" ] && echo "BOTH HOSTS LIVE" || { echo "::error::at least one host is not serving"; exit 1; }
