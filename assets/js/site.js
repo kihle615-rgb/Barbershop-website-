@@ -508,6 +508,11 @@
       }
       if (n === 2) {
         if (!$('input[name="cut"]:checked', dlg)) { err(2, 'Choose the cut you want.'); return false; }
+        if (isHouseCall() && notesEl.value.trim().length < 6) {
+          err(2, 'A house call needs an address. Where must the barber come?');
+          notesEl.focus();
+          return false;
+        }
         return true;
       }
       var okName = nameEl.value.trim().length >= 2;
@@ -526,7 +531,7 @@
              'Phone: ' + b.phonePretty + '\n' +
              'When: ' + b.dayPretty + ' at ' + b.timePretty + '\n' +
              'Cut: ' + b.cut + (b.price ? ' (' + b.price + ')' : '') + '\n' +
-             (b.notes ? 'Notes: ' + b.notes + '\n' : '') +
+             (b.notes ? (b.house ? 'Address: ' : 'Notes: ') + b.notes + '\n' : '') +
              '\n19 Madiba St, Paballelo, Upington';
     }
 
@@ -537,7 +542,7 @@
         '<dt>Phone</dt><dd>' + esc(b.phonePretty) + '</dd>' +
         '<dt>When</dt><dd>' + esc(b.dayPretty) + ' at ' + esc(b.timePretty) + '</dd>' +
         '<dt>Cut</dt><dd>' + esc(b.cut) + (b.price ? ' <span style="color:var(--accent)">' + esc(b.price) + '</span>' : '') + '</dd>' +
-        (b.notes ? '<dt>Notes</dt><dd>' + esc(b.notes) + '</dd>' : '');
+        (b.notes ? '<dt>' + (b.house ? 'Address' : 'Notes') + '</dt><dd>' + esc(b.notes) + '</dd>' : '');
       var text = compose(b);
       $('#bk-wa').href = 'https://wa.me/' + SHOP_WA + '?text=' + encodeURIComponent(text);
       form.hidden = true;
@@ -554,7 +559,21 @@
     /* ---- wiring ---- */
     dateEl.addEventListener('change', function () { buildSlots(); err(1, ''); });
     slotsEl.addEventListener('change', function () { err(1, ''); });
-    cutsEl.addEventListener('change', function () { err(2, ''); });
+    var notesLabel = $('#bk-notes-label');
+    function isHouseCall() {
+      var c = $('input[name="cut"]:checked', dlg);
+      return !!c && /house call/i.test(services[Number(c.value)].name);
+    }
+    function syncNotes() {
+      if (isHouseCall()) {
+        notesLabel.innerHTML = 'Where must we come? <span>Required</span>';
+        notesEl.placeholder = 'Street address in Upington, and how to find the door';
+      } else {
+        notesLabel.innerHTML = 'Anything specific? <span>Optional</span>';
+        notesEl.placeholder = 'Low fade, sharp line-up, leave the top';
+      }
+    }
+    cutsEl.addEventListener('change', function () { err(2, ''); syncNotes(); });
     notesEl.addEventListener('input', function () { countEl.textContent = notesEl.value.length; });
     [nameEl, phoneEl].forEach(function (el) {
       el.addEventListener('input', function () { el.setAttribute('aria-invalid', 'false'); err(3, ''); });
@@ -580,6 +599,7 @@
         cut: services[cutIdx].name,
         price: services[cutIdx].price,
         notes: notesEl.value.trim(),
+        house: isHouseCall(),
         madeAt: Date.now()
       };
       try { localStorage.setItem(STORE, JSON.stringify(b)); } catch (e2) {}
@@ -591,6 +611,7 @@
       form.hidden = false;
       receipt.hidden = true;
       countEl.textContent = '0';
+      syncNotes();
       [nameEl, phoneEl].forEach(function (el) { el.setAttribute('aria-invalid', 'false'); });
       [1, 2, 3].forEach(function (n) { err(n, ''); });
       var now = zaNow();

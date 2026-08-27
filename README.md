@@ -40,17 +40,30 @@ true colour when you hover over them. If you would rather they always show at fu
 brightness, delete the `filter:` lines under `.shot img` and `.premise__fig img` in
 `assets/css/site.css`.
 
-### 2. Set the real prices
+### 2. (Done) Prices are the shop's real ones
 
-**Every price on the page is a placeholder.** They are all in one block in `index.html`
-marked:
+The board lists six services. Your first line — standard haircut / taper fade / skin fade,
+all R100 — is split into three rows so a client can book the *specific* cut and you know
+which one is coming. Same price on all three.
 
-```html
-<!-- ⚠ SET YOUR REAL PRICES HERE — every value below is a placeholder. -->
-```
+| Service | Price |
+|---|---|
+| Standard haircut | R100 |
+| Taper fade | R100 |
+| Skin fade | R100 |
+| Haircut + enhancement | R150 |
+| Haircut + dye | R170 |
+| House call | R250 |
 
-Change the `R90`, `R80`, `R40` … values to your actual prices. Add or remove `<li class="row">`
-rows to match what you actually offer.
+To change a price, edit it in `index.html` under `<!-- 2. THE BOARD -->`. The booking form
+reads its list from this board, so it follows automatically.
+
+**Check the two descriptions I wrote for you:** "The cut, plus the hairline enhanced and
+filled in" and "The cut, plus colour through the top". I inferred those from the service
+names — if either is wrong, fix the `row__d` text on that row.
+
+**House calls ask for an address.** When a client picks House call, the booking form
+requires it and the message you receive says "Address:" instead of "Notes:".
 
 ### 3. Patch the social-preview URLs after the first deploy
 

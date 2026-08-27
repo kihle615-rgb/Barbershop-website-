@@ -89,7 +89,7 @@ motion — over `hero-still.jpg` (the settled mark).
 Every section funnels to one anchor: `#book`.
 
 1. **The premise** — "No line where it begins." Asymmetric: statement left, the shears-on-leather still right.
-2. **The board** — services as a barbershop price board: rows, leader dots, mono numerals. *(Prices are placeholders pending the owner's real numbers.)*
+2. **The board** — services as a barbershop price board: rows, leader dots, mono numerals. 
 3. **The four marks** — Precision · Confidence · Style · Legacy, lifted from the logo's own four icons, redrawn as SVG.
 4. **Line it up** — the one interactive moment. Press and hold; a soft hairline sharpens into a crisp edge and the booking CTA ignites. Release early and it eases back.
 5. **The work** — the cut gallery. *(Awaiting the owner's four photos; designed empty state until then.)*

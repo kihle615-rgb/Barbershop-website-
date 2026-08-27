@@ -163,15 +163,13 @@
     <h2 id="board-h">What's on the board</h2>
   </div>
 
-  <!-- ⚠ SET YOUR REAL PRICES HERE — every value below is a placeholder. -->
   <ol class="board__list">
-    <li class="row"><span class="row__n">01</span><span class="row__name">Skin fade</span><span class="row__d">Down to bare at the bottom, blended to nothing.</span><span class="row__dots" aria-hidden="true"></span><span class="row__p">R90</span></li>
-    <li class="row"><span class="row__n">02</span><span class="row__name">Taper fade</span><span class="row__d">Low, mid or high. Guard 1 up, clean through the sides.</span><span class="row__dots" aria-hidden="true"></span><span class="row__p">R80</span></li>
-    <li class="row"><span class="row__n">03</span><span class="row__name">Line-up</span><span class="row__d">The edge only. Forehead, temples, neck.</span><span class="row__dots" aria-hidden="true"></span><span class="row__p">R40</span></li>
-    <li class="row"><span class="row__n">04</span><span class="row__name">Cut &amp; beard</span><span class="row__d">Fade plus the beard shaped and lined to match.</span><span class="row__dots" aria-hidden="true"></span><span class="row__p">R130</span></li>
-    <li class="row"><span class="row__n">05</span><span class="row__name">Beard shape</span><span class="row__d">Trimmed, squared, edged with the blade.</span><span class="row__dots" aria-hidden="true"></span><span class="row__p">R60</span></li>
-    <li class="row"><span class="row__n">06</span><span class="row__name">Head shave</span><span class="row__d">Clean to the skin, hot towel after.</span><span class="row__dots" aria-hidden="true"></span><span class="row__p">R80</span></li>
-    <li class="row"><span class="row__n">07</span><span class="row__name">Kids cut</span><span class="row__d">Twelve and under. Same standard, less sitting still.</span><span class="row__dots" aria-hidden="true"></span><span class="row__p">R60</span></li>
+    <li class="row"><span class="row__n">01</span><span class="row__name">Standard haircut</span><span class="row__d">Clippers and scissors, cut to the shape of your head.</span><span class="row__dots" aria-hidden="true"></span><span class="row__p">R100</span></li>
+    <li class="row"><span class="row__n">02</span><span class="row__name">Taper fade</span><span class="row__d">Low, mid or high &mdash; graduated clean through the sides.</span><span class="row__dots" aria-hidden="true"></span><span class="row__p">R100</span></li>
+    <li class="row"><span class="row__n">03</span><span class="row__name">Skin fade</span><span class="row__d">Down to bare at the bottom, blended out to nothing.</span><span class="row__dots" aria-hidden="true"></span><span class="row__p">R100</span></li>
+    <li class="row"><span class="row__n">04</span><span class="row__name">Haircut + enhancement</span><span class="row__d">The cut, plus the hairline enhanced and filled in.</span><span class="row__dots" aria-hidden="true"></span><span class="row__p">R150</span></li>
+    <li class="row"><span class="row__n">05</span><span class="row__name">Haircut + dye</span><span class="row__d">The cut, plus colour through the top.</span><span class="row__dots" aria-hidden="true"></span><span class="row__p">R170</span></li>
+    <li class="row"><span class="row__n">06</span><span class="row__name">House call</span><span class="row__d">We bring the chair to you, anywhere in Upington.</span><span class="row__dots" aria-hidden="true"></span><span class="row__p">R250</span></li>
   </ol>
   <p class="board__note">Walk in or book ahead — the chair moves fastest before 14:00.</p>
 </section>
@@ -354,9 +352,9 @@
       <p class="bk__label" id="bk-cut-label">The cut</p>
       <div class="bk__cuts" role="radiogroup" aria-labelledby="bk-cut-label" id="bk-cuts"></div>
 
-      <label class="bk__label" for="bk-notes">Anything specific? <span>Optional</span></label>
+      <label class="bk__label" for="bk-notes" id="bk-notes-label">Anything specific? <span>Optional</span></label>
       <textarea class="bk__input bk__ta" id="bk-notes" name="notes" rows="3" maxlength="200"
-        placeholder="Low fade, sharp line-up, leave the top"></textarea>
+        placeholder="Low fade, sharp line-up, leave the top" maxlength="200"></textarea>
       <p class="bk__count"><span id="bk-count">0</span>/200</p>
       <p class="bk__err" data-for="step2" role="alert"></p>
     </fieldset>
