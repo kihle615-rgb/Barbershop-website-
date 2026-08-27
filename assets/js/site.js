@@ -298,6 +298,281 @@
     addEventListener('pointerdown', unlock, { once: true });
   })();
 
+
+  /* ======================================================================
+     BOOKING
+     A static page cannot send anything by itself. So it does the work a
+     barbershop actually needs: collects the booking, stamps it with a
+     reference, and hands over a written message the client sends to the shop
+     in one tap — which also leaves the client a copy in their own chat.
+     ====================================================================== */
+  (function booking() {
+    var dlg = $('#booking');
+    if (!dlg || !dlg.showModal) return;
+
+    var SHOP_WA = '27657196289';
+    var OPEN_MIN = 10 * 60 + 30, CLOSE_MIN = 20 * 60, STEP_MIN = 30, LEAD_MIN = 30;
+    var STORE = 'efs.booking.last';
+
+    var form = $('#bk-form'), receipt = $('#bk-receipt');
+    var dateEl = $('#bk-date'), slotsEl = $('#bk-slots'), cutsEl = $('#bk-cuts');
+    var notesEl = $('#bk-notes'), countEl = $('#bk-count');
+    var nameEl = $('#bk-name'), phoneEl = $('#bk-phone');
+    var backBtn = $('#bk-back'), nextBtn = $('#bk-next'), submitBtn = $('#bk-submit');
+    var stepEls = $$('.bk__step', dlg), stepTabs = $$('.bk__steps li', dlg);
+    var step = 1;
+
+    /* ---- the shop's clock, wherever the visitor is ---- */
+    function zaNow() {
+      try {
+        var p = {};
+        new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Johannesburg', year: 'numeric',
+          month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+          .formatToParts(new Date()).forEach(function (x) { p[x.type] = x.value; });
+        return { date: p.year + '-' + p.month + '-' + p.day,
+                 mins: parseInt(p.hour, 10) * 60 + parseInt(p.minute, 10) };
+      } catch (e) {
+        var d = new Date();
+        var iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        return { date: iso, mins: d.getHours() * 60 + d.getMinutes() };
+      }
+    }
+    var hhmm = function (m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+    function prettyDate(iso) {
+      var d = new Date(iso + 'T12:00:00');
+      if (isNaN(d)) return iso;
+      return new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).format(d);
+    }
+
+    /* ---- the price board is the single source of truth for services ---- */
+    var services = $$('.board .row').map(function (r) {
+      return { name: $('.row__name', r).textContent.trim(), price: $('.row__p', r).textContent.trim() };
+    });
+    if (!services.length) services = [{ name: 'Haircut', price: '' }];
+
+    cutsEl.innerHTML = services.map(function (sv, i) {
+      return '<label class="chip"><input type="radio" name="cut" value="' + i + '">' +
+             '<span><b>' + sv.name + '</b><em>' + sv.price + '</em></span></label>';
+    }).join('');
+
+    /* ---- time slots, past ones struck out when the day is today ---- */
+    function buildSlots() {
+      var now = zaNow();
+      var today = dateEl.value === now.date;
+      var html = '';
+      for (var m = OPEN_MIN; m <= CLOSE_MIN - STEP_MIN; m += STEP_MIN) {
+        var gone = today && m < now.mins + LEAD_MIN;
+        html += '<label class="chip"><input type="radio" name="time" value="' + m + '"' +
+                (gone ? ' disabled' : '') + '><span>' + hhmm(m) + '</span></label>';
+      }
+      slotsEl.innerHTML = html;
+    }
+
+    /* ---- South African mobile numbers ---- */
+    function normalisePhone(raw) {
+      var d = String(raw || '').replace(/[^\d+]/g, '');
+      if (d.slice(0, 3) === '+27') d = '27' + d.slice(3);
+      else if (d.charAt(0) === '0') d = '27' + d.slice(1);
+      else if (d.slice(0, 2) !== '27') return null;
+      return /^27[6-8]\d{8}$/.test(d) ? d : null;
+    }
+    function prettyPhone(intl) {   /* 27657196289 -> 065 719 6289 */
+      var local = '0' + intl.slice(2);
+      return local.slice(0, 3) + ' ' + local.slice(3, 6) + ' ' + local.slice(6);
+    }
+
+    var ALPHA = 'ACDEFGHJKLMNPQRTUVWXY34679';   /* no 0/O, 1/I, 2/Z, 5/S, 8/B */
+    function makeRef() {
+      var out = '', rnd = new Uint8Array(4);
+      if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(rnd);
+      else for (var j = 0; j < 4; j++) rnd[j] = Math.floor(Math.random() * 256);
+      for (var i = 0; i < 4; i++) out += ALPHA.charAt(rnd[i] % ALPHA.length);
+      return 'EF-' + out;
+    }
+
+    function err(n, msg) {
+      var el = $('.bk__err[data-for="step' + n + '"]', dlg);
+      if (el) el.textContent = msg || '';
+    }
+
+    /* ---- step machine ---- */
+    function show(n) {
+      step = n;
+      stepEls.forEach(function (f) { f.hidden = Number(f.dataset.step) !== n; });
+      stepTabs.forEach(function (t) {
+        var i = Number(t.dataset.step);
+        if (i === n) { t.setAttribute('data-on', ''); t.removeAttribute('data-done'); }
+        else if (i < n) { t.removeAttribute('data-on'); t.setAttribute('data-done', ''); }
+        else { t.removeAttribute('data-on'); t.removeAttribute('data-done'); }
+      });
+      backBtn.hidden = n === 1;
+      nextBtn.hidden = n === 3;
+      submitBtn.hidden = n !== 3;
+      var first = $('input, textarea', stepEls[n - 1]);
+      if (first) first.focus({ preventScroll: true });
+    }
+
+    function validate(n) {
+      err(n, '');
+      if (n === 1) {
+        if (!dateEl.value) { err(1, 'Pick which day you want to come in.'); dateEl.focus(); return false; }
+        var now = zaNow();
+        if (dateEl.value < now.date) { err(1, 'That day has already passed. Pick today or later.'); dateEl.focus(); return false; }
+        var t = $('input[name="time"]:checked', dlg);
+        if (!t) { err(1, 'Pick a time.'); return false; }
+        if (dateEl.value === now.date && Number(t.value) < now.mins + LEAD_MIN) {
+          err(1, 'That time has passed. Pick a later one.'); buildSlots(); return false;
+        }
+        return true;
+      }
+      if (n === 2) {
+        if (!$('input[name="cut"]:checked', dlg)) { err(2, 'Choose the cut you want.'); return false; }
+        return true;
+      }
+      var okName = nameEl.value.trim().length >= 2;
+      nameEl.setAttribute('aria-invalid', okName ? 'false' : 'true');
+      if (!okName) { err(3, 'Tell us your name so the barber knows who is coming.'); nameEl.focus(); return false; }
+      var intl = normalisePhone(phoneEl.value);
+      phoneEl.setAttribute('aria-invalid', intl ? 'false' : 'true');
+      if (!intl) { err(3, 'That does not look like a South African mobile number. Try 065 719 6289.'); phoneEl.focus(); return false; }
+      return true;
+    }
+
+    /* ---- the message both sides get ---- */
+    function compose(b) {
+      return 'EAZY FADE STUDIO\nBooking ' + b.ref + '\n\n' +
+             'Name: ' + b.name + '\n' +
+             'Phone: ' + b.phonePretty + '\n' +
+             'When: ' + b.dayPretty + ' at ' + b.timePretty + '\n' +
+             'Cut: ' + b.cut + (b.price ? ' (' + b.price + ')' : '') + '\n' +
+             (b.notes ? 'Notes: ' + b.notes + '\n' : '') +
+             '\n19 Madiba St, Paballelo, Upington';
+    }
+
+    function renderReceipt(b) {
+      $('#bk-ref').textContent = b.ref;
+      $('#bk-lines').innerHTML =
+        '<dt>Name</dt><dd>' + esc(b.name) + '</dd>' +
+        '<dt>Phone</dt><dd>' + esc(b.phonePretty) + '</dd>' +
+        '<dt>When</dt><dd>' + esc(b.dayPretty) + ' at ' + esc(b.timePretty) + '</dd>' +
+        '<dt>Cut</dt><dd>' + esc(b.cut) + (b.price ? ' <span style="color:var(--accent)">' + esc(b.price) + '</span>' : '') + '</dd>' +
+        (b.notes ? '<dt>Notes</dt><dd>' + esc(b.notes) + '</dd>' : '');
+      var text = compose(b);
+      $('#bk-wa').href = 'https://wa.me/' + SHOP_WA + '?text=' + encodeURIComponent(text);
+      $('#bk-sms').href = 'sms:' + b.phoneIntl + '?body=' + encodeURIComponent(text);
+      $('#bk-copy').dataset.text = text;
+      form.hidden = true;
+      receipt.hidden = false;
+      $('#bk-ref').setAttribute('tabindex', '-1');
+      $('#bk-ref').focus({ preventScroll: true });
+    }
+    function esc(v) {
+      return String(v).replace(/[&<>"]/g, function (c) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c];
+      });
+    }
+
+    /* ---- wiring ---- */
+    dateEl.addEventListener('change', function () { buildSlots(); err(1, ''); });
+    slotsEl.addEventListener('change', function () { err(1, ''); });
+    cutsEl.addEventListener('change', function () { err(2, ''); });
+    notesEl.addEventListener('input', function () { countEl.textContent = notesEl.value.length; });
+    [nameEl, phoneEl].forEach(function (el) {
+      el.addEventListener('input', function () { el.setAttribute('aria-invalid', 'false'); err(3, ''); });
+    });
+
+    nextBtn.addEventListener('click', function () { if (validate(step)) show(step + 1); });
+    backBtn.addEventListener('click', function () { if (step > 1) show(step - 1); });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!validate(3)) return;
+      var cutIdx = Number($('input[name="cut"]:checked', dlg).value);
+      var mins = Number($('input[name="time"]:checked', dlg).value);
+      var intl = normalisePhone(phoneEl.value);
+      var b = {
+        ref: makeRef(),
+        name: nameEl.value.trim(),
+        phoneIntl: intl,
+        phonePretty: prettyPhone(intl),
+        day: dateEl.value,
+        dayPretty: prettyDate(dateEl.value),
+        timePretty: hhmm(mins),
+        cut: services[cutIdx].name,
+        price: services[cutIdx].price,
+        notes: notesEl.value.trim(),
+        madeAt: Date.now()
+      };
+      try { localStorage.setItem(STORE, JSON.stringify(b)); } catch (e2) {}
+      renderReceipt(b);
+    });
+
+    $('#bk-copy').addEventListener('click', function () {
+      var btn = this, text = btn.dataset.text || '';
+      var done = function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy details'; }, 1800); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, fallback);
+      } else fallback();
+      function fallback() {
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e3) { btn.textContent = 'Press and hold the text to copy'; }
+        document.body.removeChild(ta);
+      }
+    });
+
+    function reset() {
+      form.reset();
+      form.hidden = false;
+      receipt.hidden = true;
+      countEl.textContent = '0';
+      [nameEl, phoneEl].forEach(function (el) { el.setAttribute('aria-invalid', 'false'); });
+      [1, 2, 3].forEach(function (n) { err(n, ''); });
+      var now = zaNow();
+      dateEl.min = now.date;
+      var max = new Date(now.date + 'T12:00:00'); max.setDate(max.getDate() + 60);
+      dateEl.max = max.toISOString().slice(0, 10);
+      /* past closing, default to tomorrow rather than a day with no slots left */
+      dateEl.value = now.mins >= CLOSE_MIN - LEAD_MIN ? nextDay(now.date) : now.date;
+      buildSlots();
+      show(1);
+    }
+    function nextDay(iso) {
+      var d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + 1);
+      return d.toISOString().slice(0, 10);
+    }
+    $('#bk-again').addEventListener('click', reset);
+
+    /* a booking already made is offered back, so closing the tab loses nothing */
+    function showLast() {
+      var el = $('#bk-last');
+      var raw = null;
+      try { raw = localStorage.getItem(STORE); } catch (e) {}
+      if (!raw) { el.hidden = true; return; }
+      var b;
+      try { b = JSON.parse(raw); } catch (e) { el.hidden = true; return; }
+      if (!b || !b.ref || Date.now() - (b.madeAt || 0) > 60 * 86400000) { el.hidden = true; return; }
+      el.hidden = false;
+      el.innerHTML = 'Last booking <b>' + esc(b.ref) + '</b> — ' + esc(b.dayPretty) + ' at ' + esc(b.timePretty) + ' · ';
+      var a = document.createElement('button');
+      a.type = 'button'; a.className = 'lineup__link'; a.textContent = 'view it';
+      a.addEventListener('click', function () { renderReceipt(b); });
+      el.appendChild(a);
+    }
+
+    /* The triggers are real WhatsApp links, so they still work with scripting off.
+       With script, they open the booking flow instead. */
+    $$('[data-book]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        reset();
+        showLast();
+        dlg.showModal();
+      });
+    });
+  })();
+
   /* ======================================================================
      THE MAP — fall back to the address panel where Google can't be reached
      ====================================================================== */

@@ -235,3 +235,52 @@ The photos are shot in a bright salon against yellow walls and brown sofas, whic
 a near-black page. They are graded down (`saturate(.86) contrast(1.06) brightness(.94)`)
 so they sit in the design, and return to full colour on hover — the restraint is for the
 page, and a closer look gives the honest photograph.
+
+
+---
+
+## Fifth pass — taking bookings
+
+The client asked for a booking flow: pick a time, pick the cut, add anything specific,
+leave a name and WhatsApp number, get a reference, and have a receipt reach both the
+barber and the client.
+
+**The honest constraint, stated to the client and written into the page.** A static site
+has no server, so it cannot send anything on its own. Automatic delivery to two phones
+needs the WhatsApp Business Platform (Meta approval, per-conversation billing) or an SMS
+gateway, plus a function to call them. What a static page *can* do is compose the message
+and hand it off, which is one tap and free. The receipt screen says so in plain words —
+"Nothing is booked until you send it to the shop" — because the failure the client cannot
+afford is someone arriving for a slot the barber never received.
+
+**Shape.** A native `<dialog>`, so focus trapping, Escape, and background inertness come
+from the platform rather than from script. Three steps — When, What, Who — numbered,
+which is the legitimate case for numbering: a booking genuinely is a sequence, and the
+order carries information the reader needs.
+
+**Decisions worth recording:**
+
+- **The price board is the only list of services.** The chips are built by reading the
+  board's rows out of the DOM, so a price edited in the HTML shows up in the booking form
+  with nothing else touched. Two lists would have drifted apart within a month.
+- **The shop's clock, not the visitor's.** Slot availability and the open/closed
+  indicator both resolve through `Africa/Johannesburg`, so a client booking from
+  elsewhere still sees Upington time. Slots already gone are struck through, not hidden,
+  so the day still reads as a whole.
+- **The reference alphabet drops ambiguous characters** — no 0/O, 1/I, 2/Z, 5/S, 8/B — so
+  a code read aloud over a phone survives the trip.
+- **Errors say what to do.** "That does not look like a South African mobile number. Try
+  065 719 6289" rather than "invalid input".
+
+**Three bugs the build surfaced:**
+
+1. `.btn` set `display:inline-flex`, which beat the `hidden` attribute's UA
+   `display:none`, so all three navigation buttons showed at once. A global
+   `[hidden]{display:none !important}` settles it for the whole page.
+2. `.btn` assumed a transparent background, true of the `<a>` elements it was written
+   for and false of the `<button>` elements the dialog introduced — the ghost and quiet
+   variants rendered with the browser's grey fill.
+3. `.bk__step > .bk__label:first-of-type` was meant for the first field in each step, but
+   `:first-of-type` counts by element type: in step two the first `<label>` is the notes
+   field, several rows down, so its top margin was removed and the label collapsed onto
+   the last cut chip. Anchoring to `legend + .bk__label` says what was actually meant.

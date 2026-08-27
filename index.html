@@ -98,7 +98,7 @@
     <a href="#visit">Visit</a>
   </nav>
 
-  <a class="btn btn--gold topbar__cta" href="#book">Book</a>
+  <a class="btn btn--gold topbar__cta" href="https://wa.me/27657196289?text=Hi%20Eazy%20Fade%20Studio%2C%20I%27d%20like%20to%20book%20a%20cut." target="_blank" rel="noopener" data-book>Book</a>
 </header>
 
 <main id="main" tabindex="-1">
@@ -128,8 +128,7 @@
         <p class="lead__eyebrow">Paballelo, Upington</p>
         <p class="lead__fact">Open every day<br><span>10:30 &ndash; 20:00</span></p>
         <div class="lead__cta">
-          <a class="btn btn--gold" href="https://wa.me/27657196289?text=Hi%20Eazy%20Fade%20Studio%2C%20I%27d%20like%20to%20book%20a%20cut."
-             target="_blank" rel="noopener">Book on WhatsApp</a>
+          <a class="btn btn--gold" href="https://wa.me/27657196289?text=Hi%20Eazy%20Fade%20Studio%2C%20I%27d%20like%20to%20book%20a%20cut." target="_blank" rel="noopener" data-book>Book a chair</a>
           <a class="btn btn--ghost" href="tel:+27657196289">065 719 6289</a>
         </div>
       </div>
@@ -227,7 +226,7 @@
       <span class="hold__fill" aria-hidden="true"></span>
       <span class="hold__label">Hold to line up</span>
     </button>
-    <p class="lineup__done" role="status">Straight enough to argue with. <a href="#book">Get yours →</a></p>
+    <p class="lineup__done" role="status">Straight enough to argue with. <a class="lineup__link" href="https://wa.me/27657196289?text=Hi%20Eazy%20Fade%20Studio%2C%20I%27d%20like%20to%20book%20a%20cut." target="_blank" rel="noopener" data-book>Get yours →</a></p>
   </div>
 </section>
 
@@ -290,8 +289,7 @@
       19 Madiba St, Paballelo<br>Upington, 8801<br>Northern Cape
     </address>
     <div class="visit__cta">
-      <a class="btn btn--gold" href="https://wa.me/27657196289?text=Hi%20Eazy%20Fade%20Studio%2C%20I%27d%20like%20to%20book%20a%20cut."
-         target="_blank" rel="noopener">Book on WhatsApp</a>
+      <a class="btn btn--gold" href="https://wa.me/27657196289?text=Hi%20Eazy%20Fade%20Studio%2C%20I%27d%20like%20to%20book%20a%20cut." target="_blank" rel="noopener" data-book>Book a chair</a>
       <a class="btn btn--ghost" href="tel:+27657196289">Call 065 719 6289</a>
       <a class="btn btn--quiet" href="https://www.google.com/maps/search/?api=1&amp;query=Eazy%20Fade%20Studio%2C%2019%20Madiba%20St%2C%20Paballelo%2C%20Upington%2C%208801"
          target="_blank" rel="noopener">Directions</a>
@@ -322,6 +320,84 @@
   </div>
 </section>
 </main>
+
+<!-- ============ BOOKING ============ -->
+<dialog class="bk" id="booking" aria-labelledby="bk-title">
+  <form method="dialog" class="bk__x"><button value="cancel" aria-label="Close booking">&times;</button></form>
+
+  <div class="bk__head">
+    <p class="eyebrow">Eazy Fade Studio</p>
+    <h2 id="bk-title">Book a chair</h2>
+    <p class="bk__last" id="bk-last" hidden></p>
+    <ol class="bk__steps" aria-hidden="true">
+      <li data-step="1">When</li><li data-step="2">What</li><li data-step="3">Who</li>
+    </ol>
+  </div>
+
+  <form class="bk__form" id="bk-form" novalidate>
+
+    <!-- step 1 -->
+    <fieldset class="bk__step" data-step="1">
+      <legend class="sr">Choose a day and time</legend>
+      <label class="bk__label" for="bk-date">Day</label>
+      <input class="bk__input" type="date" id="bk-date" name="date" required>
+      <p class="bk__hint">Open every day, 10:30 to 20:00.</p>
+
+      <p class="bk__label" id="bk-time-label">Time</p>
+      <div class="bk__slots" role="radiogroup" aria-labelledby="bk-time-label" id="bk-slots"></div>
+      <p class="bk__err" data-for="step1" role="alert"></p>
+    </fieldset>
+
+    <!-- step 2 -->
+    <fieldset class="bk__step" data-step="2" hidden>
+      <legend class="sr">Choose the cut</legend>
+      <p class="bk__label" id="bk-cut-label">The cut</p>
+      <div class="bk__cuts" role="radiogroup" aria-labelledby="bk-cut-label" id="bk-cuts"></div>
+
+      <label class="bk__label" for="bk-notes">Anything specific? <span>Optional</span></label>
+      <textarea class="bk__input bk__ta" id="bk-notes" name="notes" rows="3" maxlength="200"
+        placeholder="Low fade, sharp line-up, leave the top"></textarea>
+      <p class="bk__count"><span id="bk-count">0</span>/200</p>
+      <p class="bk__err" data-for="step2" role="alert"></p>
+    </fieldset>
+
+    <!-- step 3 -->
+    <fieldset class="bk__step" data-step="3" hidden>
+      <legend class="sr">Your details</legend>
+      <label class="bk__label" for="bk-name">Your name</label>
+      <input class="bk__input" type="text" id="bk-name" name="name" required autocomplete="name"
+        maxlength="60" placeholder="Thabo M">
+
+      <label class="bk__label" for="bk-phone">WhatsApp number</label>
+      <input class="bk__input" type="tel" id="bk-phone" name="phone" required autocomplete="tel"
+        inputmode="tel" placeholder="065 719 6289">
+      <p class="bk__hint">South African mobile. We send your booking here.</p>
+      <p class="bk__err" data-for="step3" role="alert"></p>
+    </fieldset>
+
+    <div class="bk__nav">
+      <button type="button" class="btn btn--ghost" id="bk-back" hidden>Back</button>
+      <button type="button" class="btn btn--gold" id="bk-next">Next</button>
+      <button type="submit" class="btn btn--gold" id="bk-submit" hidden>Confirm booking</button>
+    </div>
+  </form>
+
+  <!-- receipt -->
+  <div class="bk__receipt" id="bk-receipt" hidden>
+    <p class="bk__ref-label">Booking reference</p>
+    <p class="bk__ref" id="bk-ref"></p>
+    <dl class="bk__lines" id="bk-lines"></dl>
+    <p class="bk__note">Nothing is booked until you send it to the shop. Tap the gold button
+      &mdash; WhatsApp opens with your booking already written out, and you press send.</p>
+    <div class="bk__actions">
+      <a class="btn btn--gold" id="bk-wa" href="#" target="_blank" rel="noopener">Send to the shop</a>
+      <a class="btn btn--ghost" id="bk-sms" href="#">Text myself a copy</a>
+      <button type="button" class="btn btn--quiet" id="bk-copy">Copy details</button>
+    </div>
+    <button type="button" class="bk__again" id="bk-again">Make another booking</button>
+  </div>
+</dialog>
+
 
 <footer class="foot">
   <div class="foot__brand">

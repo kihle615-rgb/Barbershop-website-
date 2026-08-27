@@ -124,6 +124,82 @@ no clicking.
   the page is complete.
 
 
+## Bookings
+
+Every **Book a chair** button opens the booking window. It asks three things in order —
+when, what, who — then stamps the booking with a reference like `EF-7QK2` and shows a
+receipt.
+
+### What actually happens when someone books
+
+**Be clear on this: the website cannot send messages by itself.** It is a plain set of
+files on a web host — there is no server behind it, no account, nothing running. So the
+receipt screen gives three ways to get the booking where it needs to go:
+
+1. **Send to the shop** — the big gold button. It opens WhatsApp on the client's phone
+   with the whole booking already typed out, addressed to **065 719 6289**. They press
+   send. You get it. This is one tap, and it costs nothing.
+2. **Text myself a copy** — opens their SMS app with the same message addressed to their
+   own number, so they have a record outside WhatsApp.
+3. **Copy details** — puts the message on their clipboard.
+
+The client also keeps a copy automatically: once they send it to you on WhatsApp, the
+message is sitting in their own chat with the shop. That thread *is* their receipt.
+
+The receipt screen says plainly that nothing is booked until they press send, so nobody
+turns up thinking they have a slot when you never got the message.
+
+The last booking made on a phone is remembered for 60 days, so if someone closes the page
+they can reopen it and see their reference again.
+
+### The message you receive
+
+```
+EAZY FADE STUDIO
+Booking EF-7QK2
+
+Name: Thabo M
+Phone: 065 719 6289
+When: Fri, 28 Aug at 14:30
+Cut: Skin fade (R90)
+Notes: Low fade, sharp line-up
+
+19 Madiba St, Paballelo, Upington
+```
+
+### Changing how it works
+
+Everything is at the top of the `booking` section in `assets/js/site.js`:
+
+| What | Where |
+|---|---|
+| Your WhatsApp number | `SHOP_WA` |
+| Opening and closing time | `OPEN_MIN`, `CLOSE_MIN` |
+| Gap between slots (30 min) | `STEP_MIN` |
+| How far ahead someone must book (30 min) | `LEAD_MIN` |
+| How far ahead the calendar goes (60 days) | in `reset()` |
+
+**The list of cuts comes from the price board itself** — change a service or a price in
+`index.html` and the booking form follows automatically. There is no second list to keep
+in step.
+
+Times already gone are struck out, and the shop's own clock is used, so a client
+booking from another country still sees Upington time.
+
+### If you want bookings to send themselves
+
+Real automatic sending — the client books and both phones get a message with nobody
+pressing send — needs three things this site does not have:
+
+1. A server to run the sending (a free Vercel or Netlify function is enough).
+2. **WhatsApp Business Platform** access, which means a Meta Business account and
+   approval of your message templates. It is free for the first 1,000 conversations a
+   month, then charged per conversation.
+3. Or, more simply, an SMS provider (Twilio, Clickatell, BulkSMS) — no approval needed,
+   roughly 20–40c per SMS in South Africa.
+
+Until then, the one-tap handoff is what most shops this size use, and it works today.
+
 ## The map
 
 The bottom of the page embeds Google Maps for 19 Madiba Street. It needs no API key — it
