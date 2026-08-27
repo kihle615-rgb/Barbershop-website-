@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Publish site
 
 on:
   push:
@@ -6,63 +6,71 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write        # needed to push the gh-pages branch
 
 concurrency:
-  group: pages
+  group: publish
   cancel-in-progress: false
 
+env:
+  SITE_URL: https://kihle615-rgb.github.io/Barbershop-website-/
+
 jobs:
-  deploy:
+  publish:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
+      # Pages on this repo is served from the gh-pages branch, so publish into it.
+      # .github is stripped: a GITHUB_TOKEN push carrying workflow files is refused.
+      - name: Publish to gh-pages
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B gh-pages
+          rm -rf .github
+          touch .nojekyll
+          git add -A
+          git commit -q -m "Publish ${GITHUB_SHA:0:7}" --allow-empty
+          git push -f origin gh-pages
+          echo "pushed; GitHub Pages will now build it"
 
-      - name: Upload the site
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      # the runner has internet; this session does not. Prove the site is really up.
+      # this session has no outbound network; the runner does. Prove it is really up.
       - name: Verify the live site
         run: |
-          URL="${{ steps.deployment.outputs.page_url }}"
-          echo "Checking $URL"
-          for i in 1 2 3 4 5 6 7 8 9 10; do
-            CODE=$(curl -s -o page.html -w '%{http_code}' -L "$URL" || echo 000)
-            echo "attempt $i -> HTTP $CODE"
-            [ "$CODE" = "200" ] && break
+          echo "Waiting for $SITE_URL"
+          CODE=000
+          for i in $(seq 1 20); do
+            CODE=$(curl -s -o page.html -w '%{http_code}' -L "$SITE_URL" || echo 000)
+            BUILT=$(grep -c "R100" page.html 2>/dev/null || echo 0)
+            echo "attempt $i -> HTTP $CODE (prices present: $BUILT)"
+            [ "$CODE" = "200" ] && [ "$BUILT" != "0" ] && break
             sleep 10
           done
-          [ "$CODE" = "200" ] || { echo "::error::site did not return 200"; exit 1; }
-          echo "--- checks ---"
-          grep -q "<title>Eazy Fade Studio" page.html && echo "OK  title"        || { echo "FAIL title"; exit 1; }
-          grep -q "A fade is a line"          page.html && echo "OK  headline"     || { echo "FAIL headline"; exit 1; }
-          grep -q "R100"                      page.html && echo "OK  prices"       || { echo "FAIL prices"; exit 1; }
-          grep -q "Book a chair"              page.html && echo "OK  booking"      || { echo "FAIL booking"; exit 1; }
-          grep -q "27657196289"               page.html && echo "OK  whatsapp"     || { echo "FAIL whatsapp"; exit 1; }
+          [ "$CODE" = "200" ] || { echo "::error::site returned $CODE"; exit 1; }
+          echo "--- page content ---"
+          grep -q "<title>Eazy Fade Studio" page.html && echo "OK  title"    || { echo "FAIL title";    exit 1; }
+          grep -q "A fade is a line"          page.html && echo "OK  headline" || { echo "FAIL headline"; exit 1; }
+          grep -q "R100"                      page.html && echo "OK  R100"     || { echo "FAIL R100";     exit 1; }
+          grep -q "R250"                      page.html && echo "OK  R250"     || { echo "FAIL R250";     exit 1; }
+          grep -q "Book a chair"              page.html && echo "OK  booking"  || { echo "FAIL booking";  exit 1; }
+          grep -q "27657196289"               page.html && echo "OK  whatsapp" || { echo "FAIL whatsapp"; exit 1; }
+          grep -q "19 Madiba St"              page.html && echo "OK  address"  || { echo "FAIL address";  exit 1; }
           echo "--- assets ---"
+          FAILED=0
           for f in assets/hero.webm assets/hero.mp4 assets/css/site.css assets/js/site.js \
+                   assets/hero-still.jpg assets/hero-poster.jpg assets/logo.jpg \
                    assets/work/skin-fade.jpg assets/work/waves-lineup.jpg \
-                   assets/work/burst-fade.jpg assets/work/box-fade.jpg \
-                   assets/work/waves-top.jpg assets/fonts/archivo-var.woff2 \
-                   assets/hero-still.jpg assets/hero-poster.jpg; do
-            C=$(curl -s -o /dev/null -w '%{http_code}' -L "$URL$f")
-            S=$(curl -s -o /dev/null -w '%{size_download}' -L "$URL$f")
-            echo "$C  ${S} bytes  $f"
-            [ "$C" = "200" ] || { echo "::error::$f returned $C"; exit 1; }
+                   assets/work/burst-fade.jpg assets/work/box-fade.jpg assets/work/waves-top.jpg \
+                   assets/fonts/archivo-var.woff2 assets/fonts/hanken-var.woff2 \
+                   assets/fonts/martian-var.woff2; do
+            R=$(curl -s -o /dev/null -w '%{http_code} %{size_download}' -L "$SITE_URL$f")
+            echo "  $R  $f"
+            case "$R" in 200\ *) ;; *) FAILED=1 ;; esac
           done
+          [ "$FAILED" = "0" ] || { echo "::error::one or more assets did not serve"; exit 1; }
           echo ""
-          echo "LIVE AND VERIFIED: $URL"
+          echo "=========================================="
+          echo " LIVE AND VERIFIED"
+          echo " $SITE_URL"
+          echo "=========================================="
